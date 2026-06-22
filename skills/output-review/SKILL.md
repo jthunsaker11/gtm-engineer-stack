@@ -27,9 +27,23 @@ The script cannot catch these. Check each against the doctrine and the anchors i
 - **The "so" bridge**: context connects to relevance with "so", "and", or "because". If the offer is bolted on, it fails.
 - **Surface, don't diagnose**: the draft surfaces an observation and lets the recipient connect the pain. It never tells them what their problem is.
 - **Citations**: every claim about the company or person traces to a source.
-- **CTA discipline**: one clean ask for a 10-15 minute call. No one-pager, deck, or alternative pre-offered in an initial message. In a sequence, the one-pager belongs in Reply 2, not Reply 1.
+- **CTA discipline**: three connected components - exploration question, "if so" bridge, and a time-bounded ask. No banned framings, no robotic asks, no promised assets. Enforced as hard rejections in Criteria C and D.
 - **Flow**: read it aloud. Each sentence picks up the previous one. Nothing reads as bolted on.
 - **Peer voice, not vendor**: sharp observation, plain words, no flattery without specifics, no name-dropping.
+
+## Source preservation and event specificity (hard rejections)
+
+These reject regardless of how strong the rest of the draft is.
+
+**Criterion A, source preservation:** Scan the draft for verbs of speaking: said, mentioned, wrote, shared, talked about, told, posted. If any of those verbs appears, verify that a named source (podcast plus episode info, post date, interview title, announcement, blog post name) appears within fifteen words. If not, reject with the exact reason: "source dropped between research and outreach. The research had a citation; the copy lost it. Restore the source in the copy or remove the quoted claim."
+
+**Criterion B, event specificity:** If the draft references a corporate event using terms like joining, partnering, joined, moving to, acquired by, verify the framing makes the event type unambiguous. If a reader could reasonably interpret it as multiple events (acquisition vs exec hire vs partnership), reject with the exact reason: "ambiguous event reference. Specify the event type."
+
+**Criterion C, CTA structure:** The CTA must contain all three components from the CTA discipline rule: an exploration question (ends with "?"), a conditional bridge ("if so", "if yes", or equivalent), and a time-bounded ask. Reject if any of the three is missing, with the exact reason: "incomplete CTA. It needs an exploration question, an 'if so' bridge, and a time-bounded ask."
+
+**Criterion D, robotic-CTA detection:** Flag the ask sentence if the time window is "whenever works" with no qualifier after it (the phrase ends the sentence or is followed only by punctuation), if it names specific days of the week (for example Tuesday or Wednesday), if it lacks a soft lead-in verb (would love to, happy to, would be great to), or if it runs fewer than eight words. A qualified window such as "whenever works on your end this month" is acceptable and passes. Reject with the exact reason: "robotic CTA. The ask sentence needs a soft lead-in verb, a concrete time bound, and an open time window that reads as invitation, not transaction."
+
+Also reject any banned framing (compare notes, exchange ideas, trade thoughts, swap notes, pick your brain) and any promised asset when no shareable_content input was provided.
 
 ## Verdict
 
