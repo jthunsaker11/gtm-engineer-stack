@@ -14,6 +14,20 @@ These govern every artifact a prospect or customer might see (outreach copy, seq
 
 Calibration anchors (good/bad examples), the full trigger taxonomy, and the follow-up sequence rules live in [reference/voice.md](reference/voice.md). The `output-review` skill and the `style-guard` hook enforce what follows.
 
+## ICP definition
+
+The baseline ICP for the consultancy (GTM engineering: agentic outbound and lifecycle systems for B2B SaaS revenue teams):
+
+- B2B SaaS companies, seed through Series B
+- 30 to 200 employees
+- Has a real revenue motion (not pre-revenue, not pure self-serve)
+- Has some GTM tooling already (CRM, sequencer, enrichment) and is hitting scale limits
+- Has an operator persona who could buy: founder, VP Sales, Head of RevOps, CRO, or Head of GTM Ops
+
+Exclusions: pre-seed, lifestyle businesses, agencies, services firms, public companies over 1000 employees, anything where the buyer is not a revenue operator. Series C and later are off-target (adjacent at best), not the sweet spot.
+
+The `icp-scoring` skill scores companies against this definition.
+
 ## Voice doctrine
 
 Peer GTM operator with relevant context, not a vendor pitching. Casual but sharp, concrete not abstract. The whole email reads as one continuous thought. Plain words over clever ones. Default length 40-70 words. If you cross 80, cut.

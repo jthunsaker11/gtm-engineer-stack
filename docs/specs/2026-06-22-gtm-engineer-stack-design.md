@@ -47,7 +47,9 @@ Per task: Haiku for `signal-classification`, `email-verification` parsing, the s
 
 ## Status
 
-- **Slice 1 (done):** plugin manifest, CLAUDE.md, reference/voice.md, output-review skill, style-guard hook + hooks.json. Hook verified against good/bad/internal cases. Committed.
-- **Slice 2 (done):** icebreaker skill, review command. Verified end to end. Committed.
-- **Slice 3 (done):** account-research skill - cited brief that feeds the icebreaker, with hard citation discipline.
-- **Next:** slice 4, icp-scoring + signal-classification.
+- **Slice 1 (done):** voice spine - CLAUDE.md, reference/voice.md, output-review, style-guard hook. Committed.
+- **Slice 2 (done):** icebreaker skill, review command. Committed.
+- **Slice 3 (done):** account-research skill. Committed.
+- **CTA hardening (done):** three-component CTA rule, source-preservation, event-specificity, ICP-qualifier rules, robotic-CTA eval gate (Criteria A-D). Committed.
+- **Slice 4 (done):** icp-scoring and signal-classification skills. ICP definition (seed-Series B, 30-200 employees) added to CLAUDE.md. signal-classification uses event-aware recency bands. Validated against Pocus, a pre-seed pick, and a Series C pick.
+- **Next:** slice 5, the prospect orchestrator (wires account-research -> signal-classification -> icp-scoring -> icebreaker -> output-review).
