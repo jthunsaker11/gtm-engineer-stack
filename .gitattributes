@@ -1,0 +1,4 @@
+# Normalize text files; keep shell scripts LF so the hook never breaks on a
+# Windows checkout (CRLF would corrupt the shebang).
+* text=auto
+*.sh text eol=lf
