@@ -47,6 +47,6 @@ Per task: Haiku for `signal-classification`, `email-verification` parsing, the s
 
 ## Status
 
-- **Slices 1-5 + CTA hardening + stale-trigger gate (done):** committed.
-- **Cloneability (done):** customizable values extracted to config/ (icp.md, offering.md, personas.md). CLAUDE.md and the icp-scoring / icebreaker / account-research skills now reference config/ instead of inline values. Added README.md, GETTING_STARTED.md, .env.example. Pocus regression confirmed identical.
-- **Next:** slice 6, email-verification + verify-email (Apollo enrichment + catch-all handling).
+- **Slices 1-5 + CTA hardening + stale-trigger gate + cloneability (done):** committed.
+- **Slice 6 (done):** email-verification skill + verify-email command. Formalizes the catch-all logic that was inline in the orchestrator: Apollo email_status + catch-all flag -> verdict/confidence/recommendation. /prospect now calls it after Apollo resolution and surfaces the verdict in the trail, warning (not blocking) on catchall_unverifiable / guessed_risky. Validated on Alexa@Pocus (verified/MEDIUM/send, catch-all domain), Jason@Vitally (verified/HIGH/send), and a synthetic catch-all-unverifiable case.
+- **Next:** slice 7, meeting-prep + post-call + prep/wrap commands.

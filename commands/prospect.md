@@ -30,11 +30,7 @@ Run in this order.
    - **Layer 5 - most senior person, any function (LOW).** Filter to C-suite, VP, or Founder seniority and return whoever is most senior.
    - **Layer 6 - graceful failure.** If layers 1-5 return nothing, surface: "Apollo returned no contacts after the full waterfall. Consider manual sourcing via LinkedIn Sales Nav." Do not invent a contact.
 
-   **Email handling (flag, never gate):**
-   - `email_status = verified` -> proceed clean.
-   - `email_status = guessed` -> flag: "WARNING: pattern-guessed, not verified. Manually verify before send."
-   - `email_domain_catchall = true` -> flag: "WARNING: catch-all domain. Pattern-guessed emails often bounce here. Manually verify before send (slice 6 will automate this)."
-   - No email returned -> surface that, offer LinkedIn-only as the fallback, and include the LinkedIn URL.
+   **Email verification.** After resolving the contact, run the `email-verification` skill on the returned email, passing `email`, `email_status`, `email_domain_catchall`, and `company_domain`. Record its verdict, confidence, recommendation, and reason. If the verdict is `catchall_unverifiable` or `guessed_risky`, surface a prominent warning above the draft in the final report. Email is a flag, never a gate: the human reviews and decides. If no email was returned, offer LinkedIn-only as the fallback and include the LinkedIn URL.
 
 5. **Trigger freshness gate.** Before drafting, check the top trigger's `outbound_fit` and recency status from signal-classification. If `outbound_fit` is below 7, OR the trigger is flagged undated, older, or stale, PAUSE here. Do NOT invoke the icebreaker. Surface the weak-trigger verdict and these options:
    - a) Skip - do not draft, mark as nurture.
@@ -56,8 +52,11 @@ Run in this order.
        Apollo contact pulled: <name, title>
        Layer landed: <1-6> (<what matched>)
        Confidence: <HIGH | MEDIUM-HIGH | MEDIUM | LOW>
-       Email: <address> (Apollo status: <verified | guessed | none>)
-       Email catchall flag: <true | false>
+       Email: <address> (Apollo status: <verified | guessed | unknown | none>)
+       Email verification verdict: <verdict>
+       Verification confidence: <HIGH | MEDIUM | LOW>
+       Verification recommendation: <send | manual_verify_before_send | do_not_send_without_verification | drop>
+       Verification reason: <short explanation>
        LinkedIn: <url>
        Picked trigger: <signal> (<source>)
        Trigger freshness: <outbound_fit + status; note if this draft is a stale-trigger override>
