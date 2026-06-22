@@ -1,0 +1,9 @@
+{
+  "name": "gtm-engineer-stack",
+  "version": "0.1.0",
+  "description": "Opinionated Claude Code stack packaging GTM engineering workflows (ICP scoring, account research, signal classification, email verification, icebreaker craft, meeting prep, post-call follow-up, output review) as skills, commands, and hooks.",
+  "author": {
+    "name": "jthunsaker11",
+    "email": "jthunsaker2002@gmail.com"
+  }
+}
