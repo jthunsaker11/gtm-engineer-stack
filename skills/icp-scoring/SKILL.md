@@ -45,8 +45,18 @@ Operator personas: founder, VP Sales, Head of RevOps, CRO, Head of GTM Ops. Excl
       },
       "reasoning": "<one short paragraph>",
       "recommendation": "pursue" | "nurture" | "skip" | "needs more data",
+      "recommended_persona": ["<title in priority order>"],
       "missing_data": ["<dimensions where data was insufficient>"]
     }
+
+## Recommended persona
+
+Populate `recommended_persona` as a priority-ordered list of titles, driven by stage. The orchestrator feeds this list into the Apollo contact waterfall.
+
+- Seed: `["Founder", "CEO", "Co-founder"]`
+- Series A: `["Founder", "CEO", "VP Sales", "Head of Growth"]`
+- Series B: `["VP Sales", "Head of RevOps", "Head of Growth", "VP Marketing"]`
+- Series C and later, or off-ICP: `[]` (the tier will be skip, so there is no one to resolve)
 
 ## Rules
 
