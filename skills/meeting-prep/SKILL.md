@@ -30,3 +30,25 @@ Turns a company plus contact (and any deal context) into a tight pre-call brief 
 - **Desired outcome**: the single next step you want out of the call.
 
 Keep it to a page. Cite public claims with their source; mark CRM-sourced facts as internal. This skill only reads context; it never writes anywhere.
+
+## CRM integration (optional)
+
+The `recent_context` input can be populated manually OR pulled from a CRM. To wire a CRM, add a tool call at the start of the skill that reads from your CRM's MCP. Reference shape for the CRM read:
+
+Input to CRM read:
+
+- `company_domain` (string)
+- `contact_name` (string)
+
+Expected output from CRM read (any subset is fine; missing fields skip gracefully):
+
+- `deal_stage` (string)
+- `deal_amount` (number, optional)
+- `last_activity_date` (date string)
+- `recent_notes` (string, recent notes on the contact or deal)
+- `prior_meetings` (list, summaries of prior meetings)
+- `relationship_owner` (string, the AE or CSM)
+
+Once the CRM read completes, treat the returned data as the `recent_context` input and proceed with the skill logic. If the CRM returns nothing (no record for that company/contact), the skill falls back to the public account-research path only.
+
+This skill DOES NOT WRITE to the CRM. It only reads.

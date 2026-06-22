@@ -66,3 +66,17 @@ Built to be cloned. Edit three files for your business and you have a working AI
 - `hooks/style-guard.sh` - the deterministic ban list
 
 Change the core only if you want to change the fundamental writing rules or scoring logic. Full setup walkthrough in [GETTING_STARTED.md](GETTING_STARTED.md).
+
+## CRM integration
+
+The stack is designed to integrate with any CRM (HubSpot, Salesforce, Pipedrive, Attio, Close) via MCP plugins, but it NEVER auto-writes to a CRM. The pattern is:
+
+Read operations are optional and pull context FROM the CRM into the skills:
+
+- `/prospect` can check if a contact already exists in CRM before drafting, to avoid duplicate outreach
+- `/prep` pulls deal context, recent activity, and prior touchpoints to ground the brief
+- `/wrap` pulls the current deal record so the recommendation reflects actual stage
+
+Write operations are NEVER auto-executed. The `/wrap` output is a PROPOSED PACKAGE the user reviews before writing to CRM manually or via a script they own.
+
+To wire your CRM, install your CRM's MCP plugin in Claude Code (HubSpot has hubspot-mcp; Salesforce has salesforce-mcp via Zapier or direct; etc.) and add a small wrapper in the relevant skill that calls your MCP's read tools when the skill's `crm_context` input is empty. See [skills/meeting-prep/SKILL.md](skills/meeting-prep/SKILL.md) and [skills/post-call/SKILL.md](skills/post-call/SKILL.md) for the integration points.

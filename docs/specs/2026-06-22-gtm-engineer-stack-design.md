@@ -47,6 +47,7 @@ Per task: Haiku for `signal-classification`, `email-verification` parsing, the s
 
 ## Status
 
-- **Slices 1-5 + CTA hardening + stale-trigger gate + cloneability (done):** committed.
-- **Slice 6 (done):** email-verification skill + verify-email command. Formalizes the catch-all logic that was inline in the orchestrator: Apollo email_status + catch-all flag -> verdict/confidence/recommendation. /prospect now calls it after Apollo resolution and surfaces the verdict in the trail, warning (not blocking) on catchall_unverifiable / guessed_risky. Validated on Alexa@Pocus (verified/MEDIUM/send, catch-all domain), Jason@Vitally (verified/HIGH/send), and a synthetic catch-all-unverifiable case.
-- **Next:** slice 7, meeting-prep + post-call + prep/wrap commands.
+- **Slices 1-6 + CTA hardening + stale-trigger gate + cloneability (done):** committed.
+- **Slice 7 (done):** meeting-prep (/prep) and post-call (/wrap) skills. Read context only; never write.
+- **CRM integration docs (done):** README + meeting-prep + post-call document a read-only, propose-never-execute CRM pattern. Cloners wire any CRM (HubSpot, Salesforce, Pipedrive, Attio, Close) via MCP read tools; writes stay a reviewed, user-owned step. No skill logic changed.
+- **Next:** slice 8, citation-check hook + final polish.
