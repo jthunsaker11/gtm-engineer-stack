@@ -47,9 +47,7 @@ Per task: Haiku for `signal-classification`, `email-verification` parsing, the s
 
 ## Status
 
-- **Slice 1 (done):** voice spine - CLAUDE.md, reference/voice.md, output-review, style-guard hook. Committed.
-- **Slice 2 (done):** icebreaker skill, review command. Committed.
-- **Slice 3 (done):** account-research skill. Committed.
-- **CTA hardening (done):** three-component CTA rule, source-preservation, event-specificity, ICP-qualifier rules, robotic-CTA eval gate (Criteria A-D). Committed.
-- **Slice 4 (done):** icp-scoring and signal-classification skills. ICP definition (seed-Series B, 30-200 employees) added to CLAUDE.md. signal-classification uses event-aware recency bands. Validated against Pocus, a pre-seed pick, and a Series C pick.
-- **Next:** slice 5, the prospect orchestrator (wires account-research -> signal-classification -> icp-scoring -> icebreaker -> output-review).
+- **Slices 1-4 + CTA hardening (done):** committed.
+- **Slice 5 (done):** /prospect orchestrator. Chain: account-research -> icp-scoring (skip-gate) -> signal-classification -> Apollo six-layer contact waterfall -> trigger freshness gate -> icebreaker -> output-review. icp-scoring gained recommended_persona. Validated end-to-end on Pocus (layer 1), Vitally (layer 2, unconventional title), and an off-ICP skip.
+- **Stale-trigger gate (done):** icebreaker freshness gate + output-review Criterion E block recency-implying language on stale triggers.
+- **Next:** slice 6, email-verification + verify-email (Apollo enrichment + catch-all handling).
