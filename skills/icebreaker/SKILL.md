@@ -54,10 +54,12 @@ Acceptable stale-trigger framings (anchored to the actual age, not pretending it
 
 ## The offering sentence
 
-When you write the line naming what you do, apply the ICP qualifier rule from [CLAUDE.md](../../CLAUDE.md). Check whether the recipient's company is already named and clearly inside the ICP:
+Use the offering language in [config/offering.md](../../config/offering.md) for the line naming what you do, then apply the ICP qualifier rule from [CLAUDE.md](../../CLAUDE.md). Check whether the recipient's company is already named and clearly inside the ICP:
 
-- If yes, drop the trailing qualifier. Write "that thesis is what I build agentic outbound and lifecycle systems around," not "...around for B2B SaaS teams." The context already established the lane.
+- If yes, drop the trailing ICP qualifier; the context already established the lane.
 - If no, and the recipient's space is unclear from context, keep the qualifier so they know what lane you work in.
+
+config/offering.md holds both the phrasing and the rule for when to drop the qualifier.
 
 ## The CTA
 

@@ -5,7 +5,7 @@ description: Use when scoring a company against the consultancy ICP, typically c
 
 # ICP scoring
 
-Given a company profile (the output of [account-research](../account-research/SKILL.md)), evaluate fit against the ICP defined in [CLAUDE.md](../../CLAUDE.md) and return a structured verdict. Called explicitly by the prospect orchestrator; it does not auto-trigger.
+Given a company profile (the output of [account-research](../account-research/SKILL.md)), evaluate fit against the ICP defined in [config/icp.md](../../config/icp.md) and return a structured verdict. Called explicitly by the prospect orchestrator; it does not auto-trigger.
 
 ## Input
 
@@ -13,19 +13,17 @@ A company profile: stage, headcount, product and revenue motion, named people an
 
 ## Scoring dimensions
 
-Score each 0-10. The total is the sum (0-70), bucketed into a tier.
+Score each 0-10 against the ICP in [config/icp.md](../../config/icp.md). The total is the sum (0-70), bucketed into a tier.
 
-| Dimension | 10 | 5 | low |
-|-----------|----|----|-----|
-| stage | seed through Series B | Series C | pre-seed 0, late stage/public 3 |
-| headcount | 30-200 | near the edges | far outside, scaled down |
-| motion | B2B SaaS revenue motion | adjacent | off-ICP 0 |
-| buyer | named operator persona on the team | plausible | none 0 |
-| stack | CRM + sequencer + enrichment | partial | none 2 |
-| signal | recent funding, hiring spike, exec hire, or launch | weaker | none 3 |
-| reachability | clear public footprint | mixed | dark 3 |
+- **stage**: 10 if within your target stage range, about 5 if one stage adjacent, low (0-3) for far-off or excluded stages.
+- **headcount**: 10 if within your target employee size, scaled down the further outside it the company sits.
+- **motion**: 10 for your target motion, 5 adjacent, 0 off-ICP.
+- **buyer**: 10 if a named target persona (config/personas.md) is on the team, 5 plausible, 0 none.
+- **stack**: 10 for CRM + sequencer + enrichment, 5 partial, 2 none.
+- **signal**: 10 for a recent funding round, hiring spike, exec hire, or launch; 5 weaker; 3 none.
+- **reachability**: 10 for a clear public footprint, 5 mixed, 3 dark.
 
-Operator personas: founder, VP Sales, Head of RevOps, CRO, Head of GTM Ops. Exclusions: pre-seed, lifestyle businesses, agencies, services firms, public companies over 1000 employees, anything where the buyer is not a revenue operator. An exclusion caps the relevant dimensions (motion, stage, or buyer) at 0 and should land the company in skip.
+Anything in the Exclusions list in config/icp.md caps the relevant dimensions (stage, motion, or buyer) at 0 and lands the company in skip.
 
 ## Tiers
 
@@ -51,12 +49,7 @@ Operator personas: founder, VP Sales, Head of RevOps, CRO, Head of GTM Ops. Excl
 
 ## Recommended persona
 
-Populate `recommended_persona` as a priority-ordered list of titles, driven by stage. The orchestrator feeds this list into the Apollo contact waterfall.
-
-- Seed: `["Founder", "CEO", "Co-founder"]`
-- Series A: `["Founder", "CEO", "VP Sales", "Head of Growth"]`
-- Series B: `["VP Sales", "Head of RevOps", "Head of Growth", "VP Marketing"]`
-- Series C and later, or off-ICP: `[]` (the tier will be skip, so there is no one to resolve)
+Populate `recommended_persona` from the stage-keyed priority lists in [config/personas.md](../../config/personas.md). For Series C and later, or any off-ICP company, return an empty list (the tier will be skip).
 
 ## Rules
 

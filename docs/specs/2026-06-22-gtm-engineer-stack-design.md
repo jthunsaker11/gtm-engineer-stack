@@ -47,7 +47,6 @@ Per task: Haiku for `signal-classification`, `email-verification` parsing, the s
 
 ## Status
 
-- **Slices 1-4 + CTA hardening (done):** committed.
-- **Slice 5 (done):** /prospect orchestrator. Chain: account-research -> icp-scoring (skip-gate) -> signal-classification -> Apollo six-layer contact waterfall -> trigger freshness gate -> icebreaker -> output-review. icp-scoring gained recommended_persona. Validated end-to-end on Pocus (layer 1), Vitally (layer 2, unconventional title), and an off-ICP skip.
-- **Stale-trigger gate (done):** icebreaker freshness gate + output-review Criterion E block recency-implying language on stale triggers.
+- **Slices 1-5 + CTA hardening + stale-trigger gate (done):** committed.
+- **Cloneability (done):** customizable values extracted to config/ (icp.md, offering.md, personas.md). CLAUDE.md and the icp-scoring / icebreaker / account-research skills now reference config/ instead of inline values. Added README.md, GETTING_STARTED.md, .env.example. Pocus regression confirmed identical.
 - **Next:** slice 6, email-verification + verify-email (Apollo enrichment + catch-all handling).

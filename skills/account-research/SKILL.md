@@ -5,7 +5,7 @@ description: Use when researching a company or account before outreach - gatheri
 
 # Account research
 
-Turns a company into a cited brief an operator can act on. The output exists to feed the [icebreaker](../icebreaker/SKILL.md) skill a real trigger and the context around it. The rules are in [CLAUDE.md](../../CLAUDE.md); the trigger taxonomy is in [reference/voice.md](../../reference/voice.md).
+Turns a company into a cited brief an operator can act on. The output exists to feed the [icebreaker](../icebreaker/SKILL.md) skill a real trigger and the context around it. The rules are in [CLAUDE.md](../../CLAUDE.md); the trigger taxonomy is in [reference/voice.md](../../reference/voice.md). The ICP it researches against is in [config/icp.md](../../config/icp.md).
 
 ## The one non-negotiable rule
 
@@ -15,7 +15,7 @@ Turns a company into a cited brief an operator can act on. The output exists to 
 
 - **Company**: name or domain (required).
 - **Target persona**: the role or person you intend to reach (optional but sharpens the search).
-- **Offering**: what you sell or propose (optional; focuses research on relevant context).
+- **Offering**: what you sell or propose (optional; defaults to [config/offering.md](../../config/offering.md)). Focuses research on relevant context.
 
 ## Sources, in order of trust
 
