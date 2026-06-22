@@ -47,6 +47,7 @@ Per task: Haiku for `signal-classification`, `email-verification` parsing, the s
 
 ## Status
 
-- **Slice 1 (done):** plugin manifest, CLAUDE.md, reference/voice.md, output-review skill, style-guard hook + hooks.json. Voice doctrine and calibration anchors set by the user. Hook verified against good/bad/internal cases.
-- **Slice 2 (done):** icebreaker skill, review command. Verified end to end - a drafted icebreaker passes the style-guard mechanical pass and the judgment checklist.
-- **Next:** slice 3, account-research skill.
+- **Slice 1 (done):** plugin manifest, CLAUDE.md, reference/voice.md, output-review skill, style-guard hook + hooks.json. Hook verified against good/bad/internal cases. Committed.
+- **Slice 2 (done):** icebreaker skill, review command. Verified end to end. Committed.
+- **Slice 3 (done):** account-research skill - cited brief that feeds the icebreaker, with hard citation discipline.
+- **Next:** slice 4, icp-scoring + signal-classification.
