@@ -45,6 +45,8 @@ These reject regardless of how strong the rest of the draft is.
 
 Also reject any banned framing (compare notes, exchange ideas, trade thoughts, swap notes, pick your brain) and any promised asset when no shareable_content input was provided.
 
+**Criterion E, stale-trigger language:** If the reasoning trail flagged the trigger as stale, undated, or older, OR the trigger's outbound_fit is below 7, scan the draft for recency-implying verbs and phrases: "saw", "just", "recently", "shipped", "announced", "this week", "this month". If any appear, reject with the exact reason: "stale trigger flagged but draft uses recency-implying language. Use anchored framing instead, or refuse to draft." (When no trigger metadata is supplied, this criterion does not apply.)
+
 ## Verdict
 
 Report one of:

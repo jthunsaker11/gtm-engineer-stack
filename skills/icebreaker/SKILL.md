@@ -17,6 +17,32 @@ Gather these before writing. If any are missing, ask for them rather than invent
 - **Desired next step**: defaults to a 10-15 minute call.
 - **Shareable content** (optional): a specific asset you actually have and could send. Without this field, the copy may not promise or offer any asset. Even when present, assets are follow-up material, not part of the initial ask.
 
+## Trigger freshness gate
+
+Before drafting, check the trigger's `outbound_fit` and recency status from signal-classification. If `outbound_fit` is below 7, OR the trigger is flagged as undated, older, or stale, do NOT auto-draft. Surface the situation instead:
+
+> No fresh trigger found for [company]. Top signal: [trigger description] (outbound_fit X, status: [stale/undated/older]). Options:
+> - a) Skip - do not draft, mark as nurture
+> - b) Override - draft anyway with stale-appropriate framing (no recency verbs)
+> - c) Wait for a fresher signal
+
+If the user requests override (option b), the draft MUST avoid recency-implying language.
+
+Banned verbs and phrases for stale-trigger drafts:
+
+- "saw" / "just saw" / "recently saw"
+- "just shipped" / "just launched" / "just announced"
+- "recently" anywhere in the email
+- "this week" / "this month"
+- any phrasing that implies the trigger is fresh news
+
+Acceptable stale-trigger framings (anchored to the actual age, not pretending it is fresh):
+
+- "noticed you have been building [thing] for a while"
+- "curious about how [thing] has been going since [period]"
+- "the work you have put into [thing] caught my attention"
+- "been thinking about [thing] in the context of what you have built"
+
 ## Process
 
 1. **Classify the trigger** against the taxonomy in [reference/voice.md](../../reference/voice.md) (outbound, warm signal, relationship-stage, networking/partnership). The trigger type drives the opener phrasing.
