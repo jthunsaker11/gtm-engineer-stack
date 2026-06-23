@@ -47,7 +47,6 @@ Per task: Haiku for `signal-classification`, `email-verification` parsing, the s
 
 ## Status
 
-- **Slices 1-6 + CTA hardening + stale-trigger gate + cloneability (done):** committed.
-- **Slice 7 (done):** meeting-prep (/prep) and post-call (/wrap) skills. Read context only; never write.
-- **CRM integration docs (done):** README + meeting-prep + post-call document a read-only, propose-never-execute CRM pattern. Cloners wire any CRM (HubSpot, Salesforce, Pipedrive, Attio, Close) via MCP read tools; writes stay a reviewed, user-owned step. No skill logic changed.
-- **Next:** slice 8, citation-check hook + final polish.
+- **Slices 1-7 + CTA hardening + stale-trigger gate + cloneability + CRM docs (done):** committed.
+- **Slice 8 (done):** citation-check hook (deterministic source-preservation pre-check), wired alongside style-guard. README polished for public release. Extracted the contact-resolver skill from the orchestrator and added the /draft-icebreaker command so the README is accurate. Security scan of tracked files and full history: clean (no keys, emails, IDs, or PII).
+- **Shipped.** Full /prospect chain proven end-to-end on real data (Pocus, Vitally); both hooks pass; all eight workflows implemented.

@@ -1,27 +1,24 @@
 # gtm-engineer-stack
 
-An opinionated Claude Code stack that turns one slash command into a full outbound chain: account research, ICP scoring, signal classification, Apollo MCP contact resolution with a six-layer fallback waterfall, peer-voice icebreaker drafting, and five-criterion output review.
+An opinionated Claude Code stack that turns one slash command into a full B2B outbound chain: account research, ICP scoring with skip gate, signal classification with event-aware recency, Apollo MCP contact resolution with a six-layer fallback waterfall, peer-voice icebreaker drafting, email verification with catch-all detection, plus a deterministic style-guard hook and a five-criterion output reviewer.
 
-Built to be cloned. Edit three files for your business and you have a working AI-assisted GTM workspace in 10 minutes.
+Built to be cloned. Edit three config files for your business and you have a working AI-assisted GTM workspace in 10 minutes.
 
 ## What it does
 
-- **account-research** - turns a company into a cited brief: snapshot, ranked triggers, key people, context.
-- **icp-scoring** - scores a company against your ICP across seven dimensions, returns a tier and a recommended persona.
-- **signal-classification** - classifies and ranks signals by type, intensity, and event-aware recency for outbound fit.
-- **icebreaker** - drafts peer-voice outreach calibrated to the trigger, with a stale-trigger gate.
-- **output-review** - a five-criterion quality gate (source preservation, event specificity, CTA structure, robotic-CTA, stale-trigger language) plus a deterministic style-guard hook.
-- **/prospect** - the orchestrator that runs the whole chain on one company, resolves a real contact via Apollo, and hands back a draft plus a reasoning trail. It does not send.
+One command: `/prospect <company-domain>`. The agent runs the full chain in about 30 seconds and hands back a reasoning trail, a reviewed draft, and a verified contact. It never sends.
 
-## Quickstart
+Other commands: `/draft-icebreaker`, `/verify-email`, `/prep`, `/wrap`.
+
+## Quick start
 
 1. Clone this repo.
-2. Copy `.env.example` to `.env` and add your `ANTHROPIC_API_KEY`.
-3. Install the Apollo MCP plugin in Claude Code (see [GETTING_STARTED.md](GETTING_STARTED.md)).
-4. Edit [config/icp.md](config/icp.md) - your ICP.
-5. Edit [config/offering.md](config/offering.md) - what you sell.
-6. Edit [config/personas.md](config/personas.md) - who you target.
-7. Run `/prospect <company-domain>`.
+2. Copy `.env.example` to `.env`, add your `ANTHROPIC_API_KEY`.
+3. Install the Apollo MCP plugin in Claude Code (or your chosen contact data provider).
+4. Edit `config/icp.md` (who you target).
+5. Edit `config/offering.md` (what you sell).
+6. Edit `config/personas.md` (which titles you reach).
+7. Run `/prospect <company-domain>` in Claude Code.
 
 ## Architecture
 
@@ -29,54 +26,87 @@ Built to be cloned. Edit three files for your business and you have a working AI
 /prospect <company-domain>
         |
         v
-  account-research  ---> cited brief (snapshot, triggers, people, context)
+  account-research ------> cited brief (snapshot, triggers, people, context)
         |
         v
-  icp-scoring       ---> tier + recommended_persona  --[ tier = skip ]--> STOP (no Apollo spend)
+  icp-scoring -----------> tier + recommended_persona  --[ tier = skip ]--> STOP (no contact spend)
         |
         v
   signal-classification -> ranked triggers (event-aware recency)
         |
         v
-  Apollo waterfall  ---> verified contact (6 layers, confidence label)
+  contact-resolver ------> verified contact via the six-layer waterfall
+        |                   (exact title -> family -> function -> founder -> senior -> fail)
+        |                   + email-verification verdict
+        v
+  freshness gate --------> [ outbound_fit < 7 ] --> PAUSE (skip / override / wait)
         |
         v
-  freshness gate    ---> [ outbound_fit < 7 ] --> PAUSE (skip / override / wait)
+  icebreaker ------------> peer-voice draft
         |
         v
-  icebreaker        ---> peer-voice draft
-        |
-        v
-  output-review     ---> PASS / REVISE (Criteria A-E + style-guard)
+  output-review ---------> PASS / REVISE (Criteria A-E + style-guard + citation-check)
         |
         v
   reasoning trail + draft + contact   (does not send)
 ```
 
-## What's customizable vs. fixed
+## Skills inventory
 
-**Yours to edit (`config/`):**
-- `config/icp.md` - your ideal customer profile and scoring dimensions
-- `config/offering.md` - what you sell and how you describe it
-- `config/personas.md` - title priority lists and waterfall expansions
+- **account-research** - turns a company into a cited brief.
+- **icp-scoring** - scores against your ICP, returns a tier and a recommended persona.
+- **signal-classification** - classifies and ranks signals by event-aware recency for outbound fit.
+- **contact-resolver** - resolves one real contact via the six-layer fallback waterfall with a confidence label.
+- **icebreaker** - drafts peer-voice outreach calibrated to the trigger, with a stale-trigger gate.
+- **email-verification** - turns Apollo status + catch-all into a verdict and a send recommendation.
+- **meeting-prep** - builds a one-page pre-call brief from public and optional CRM context.
+- **post-call** - turns call notes into a proposed CRM package and a reviewed follow-up.
+- **output-review** - the five-criterion quality gate.
 
-**The opinionated core (leave alone unless you mean it):**
-- `CLAUDE.md` voice doctrine - the peer-voice writing rules
-- `skills/` - the scoring rubric, the waterfall logic, the review criteria
-- `hooks/style-guard.sh` - the deterministic ban list
+## Slash commands
 
-Change the core only if you want to change the fundamental writing rules or scoring logic. Full setup walkthrough in [GETTING_STARTED.md](GETTING_STARTED.md).
+- **/prospect** - the full chain on one company domain.
+- **/draft-icebreaker** - one reviewed icebreaker for a known contact and trigger.
+- **/verify-email** - a one-off email deliverability check.
+- **/prep** - a pre-call meeting brief.
+- **/wrap** - a proposed post-call package (review before writing to CRM).
+
+## Hooks
+
+- **style-guard.sh** - deterministic enforcement of banned phrases, cliches, jargon, and em dashes.
+- **citation-check.sh** - deterministic enforcement of the source-preservation rule.
+
+## Voice doctrine
+
+See `CLAUDE.md`. Peer voice, no em dashes, source preservation, a three-component CTA, and banned cliches and SaaS jargon. Five output-reviewer criteria (A source preservation, B event specificity, C CTA structure, D robotic-CTA, E stale-trigger language) enforce the rules at draft time.
+
+## Customization
+
+- `config/icp.md` - who you target.
+- `config/offering.md` - what you sell, how you describe it.
+- `config/personas.md` - title priority lists by stage.
+- Voice doctrine: edit `CLAUDE.md` only if you want to change the fundamental writing rules.
 
 ## CRM integration
 
-The stack is designed to integrate with any CRM (HubSpot, Salesforce, Pipedrive, Attio, Close) via MCP plugins, but it NEVER auto-writes to a CRM. The pattern is:
+The stack is designed to integrate with any CRM (HubSpot, Salesforce, Pipedrive, Attio, Close) via MCP plugins. Read operations are opt-in; write operations are NEVER auto-executed. `/wrap` outputs a proposed package the user reviews and writes manually. See [GETTING_STARTED.md](GETTING_STARTED.md) and the CRM integration sections in `skills/meeting-prep/SKILL.md` and `skills/post-call/SKILL.md`.
 
-Read operations are optional and pull context FROM the CRM into the skills:
+## Contact data provider
 
-- `/prospect` can check if a contact already exists in CRM before drafting, to avoid duplicate outreach
-- `/prep` pulls deal context, recent activity, and prior touchpoints to ground the brief
-- `/wrap` pulls the current deal record so the recommendation reflects actual stage
+Apollo MCP is the default. To swap providers (Clearbit, ZoomInfo, Cognism, Lusha), edit the implementation section of the `contact-resolver` skill. The interface contract stays the same: domain plus a priority-ordered persona list in, one contact with title, LinkedIn, email, and a confidence label out.
 
-Write operations are NEVER auto-executed. The `/wrap` output is a PROPOSED PACKAGE the user reviews before writing to CRM manually or via a script they own.
+## Production runtime
 
-To wire your CRM, install your CRM's MCP plugin in Claude Code (HubSpot has hubspot-mcp; Salesforce has salesforce-mcp via Zapier or direct; etc.) and add a small wrapper in the relevant skill that calls your MCP's read tools when the skill's `crm_context` input is empty. See [skills/meeting-prep/SKILL.md](skills/meeting-prep/SKILL.md) and [skills/post-call/SKILL.md](skills/post-call/SKILL.md) for the integration points.
+This Claude Code stack is the source of truth for prompts, voice doctrine, and quality rules. The same logic also runs in production via an n8n ICP-Aware Account Intelligence Engine: batch input from an Apollo CSV, signal-driven processing, persisted to Google Sheets, running on a daily signal feed. Same prompts, two execution surfaces. Local Claude Code for iteration; n8n for scale.
+
+## Security model
+
+All API keys and MCP credentials live on your machine, never in the repo:
+
+- Your Anthropic API key goes in `.env` (gitignored).
+- Your Apollo or other MCP connection is configured in Claude Code's local settings (gitignored).
+- This repo contains prompts, rules, skills, and hooks only. No secrets.
+
+## Stack
+
+Claude Code, Apollo MCP.

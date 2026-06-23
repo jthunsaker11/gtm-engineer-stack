@@ -17,20 +17,7 @@ Run in this order.
 
 3. **signal-classification** - Rank the signals. The top item is the candidate trigger. Record its type, source, and outbound_fit.
 
-4. **Apollo contact resolution (six-layer waterfall)** - Find ONE real contact at the company using `apollo_mixed_people_api_search` with the company domain. Title strings vary wildly across companies, so walk the layers in order and stop at the first that returns a contact. Record which layer landed it and the confidence label.
-
-   - **Layer 1 - exact title match (HIGH).** For each title in `recommended_persona`, query that exact title at the company domain. Return the top match if any layer-1 query lands.
-   - **Layer 2 - title family expansion (HIGH).** If layer 1 fails, expand each persona title to its family and query the expanded set; return the most senior match.
-     - VP Sales -> VP Sales, VP of Sales, Vice President of Sales, SVP Sales, Chief Revenue Officer, CRO, Head of Sales
-     - Head of RevOps -> Head of Revenue Operations, VP RevOps, Director of Revenue Operations, VP Sales Operations, Head of GTM Ops
-     - Head of Growth -> VP Growth, Director of Growth, Head of Marketing, VP Marketing
-     - Founder -> Founder, Co-founder, CEO, Chief Executive Officer
-   - **Layer 3 - functional area + seniority (MEDIUM).** Infer the department (Sales, Marketing, RevOps, Growth, Founder) from `recommended_persona`. Query with a department filter plus a seniority filter (VP-level and above). Return the most senior.
-   - **Layer 4 - founder/CEO fallback (MEDIUM-HIGH for under 30 employees, MEDIUM otherwise).** Query for the founder, co-founder, or CEO. Under 30 employees the founder is often the real buyer regardless of org chart.
-   - **Layer 5 - most senior person, any function (LOW).** Filter to C-suite, VP, or Founder seniority and return whoever is most senior.
-   - **Layer 6 - graceful failure.** If layers 1-5 return nothing, surface: "Apollo returned no contacts after the full waterfall. Consider manual sourcing via LinkedIn Sales Nav." Do not invent a contact.
-
-   **Email verification.** After resolving the contact, run the `email-verification` skill on the returned email, passing `email`, `email_status`, `email_domain_catchall`, and `company_domain`. Record its verdict, confidence, recommendation, and reason. If the verdict is `catchall_unverifiable` or `guessed_risky`, surface a prominent warning above the draft in the final report. Email is a flag, never a gate: the human reviews and decides. If no email was returned, offer LinkedIn-only as the fallback and include the LinkedIn URL.
+4. **contact-resolver** - Resolve ONE real contact at the company. Pass `company_domain` and `recommended_persona` to the [contact-resolver](../skills/contact-resolver/SKILL.md) skill, which walks the six-layer Apollo waterfall (exact title -> family expansion -> function + seniority -> founder/CEO -> most senior -> graceful failure), runs `email-verification` on the result, and returns the contact, the layer that landed it, the confidence label, and the email verdict. If the email verdict is `catchall_unverifiable` or `guessed_risky`, surface a prominent warning above the draft. Email is a flag, never a gate. If no contact is found, surface that and stop before drafting.
 
 5. **Trigger freshness gate.** Before drafting, check the top trigger's `outbound_fit` and recency status from signal-classification. If `outbound_fit` is below 7, OR the trigger is flagged undated, older, or stale, PAUSE here. Do NOT invoke the icebreaker. Surface the weak-trigger verdict and these options:
    - a) Skip - do not draft, mark as nurture.
