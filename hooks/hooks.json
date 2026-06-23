@@ -4,10 +4,8 @@
       {
         "matcher": "Write|Edit",
         "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/style-guard.sh"
-          }
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/style-guard.sh" },
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/citation-check.sh" }
         ]
       }
     ]
