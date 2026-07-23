@@ -1,0 +1,16 @@
+{
+  "name": "gtm-engineer-stack",
+  "owner": {
+    "name": "jthunsaker11"
+  },
+  "metadata": {
+    "description": "An opinionated Claude Code stack that turns one slash command into a full B2B outbound chain."
+  },
+  "plugins": [
+    {
+      "name": "gtm-engineer-stack",
+      "source": ".",
+      "description": "An opinionated Claude Code stack that turns one slash command into a full B2B outbound chain: account research, ICP scoring with skip gate, signal classification with event-aware recency, Apollo MCP contact resolution with a six-layer fallback waterfall, peer-voice icebreaker drafting, email verification with catch-all detection, plus a deterministic style-guard hook and a five-criterion output reviewer."
+    }
+  ]
+}
