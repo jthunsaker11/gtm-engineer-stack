@@ -8,7 +8,7 @@ Built to be cloned. Edit three config files for your business and you have a wor
 
 One command: `/prospect <company-domain>`. The agent runs the full chain in about 30 seconds and hands back a reasoning trail, a reviewed draft, and a verified contact. It never sends.
 
-Other commands: `/draft-icebreaker`, `/verify-email`, `/prep`, `/wrap`.
+Other commands: `/audience-builder`, `/draft-icebreaker`, `/verify-email`, `/prep`, `/wrap`.
 
 ## Quick start
 
@@ -53,6 +53,7 @@ Other commands: `/draft-icebreaker`, `/verify-email`, `/prep`, `/wrap`.
 
 ## Skills inventory
 
+- **audience-builder** - turns an ICP definition into a Clay-sourced, enriched list of accounts and contacts. Sits upstream of icp-scoring: it builds the pool, scoring ranks it. Plan mode by default, `--execute` to run against Clay. Requires the Clay Agent Plugin.
 - **account-research** - turns a company into a cited brief.
 - **icp-scoring** - scores against your ICP, returns a tier and a recommended persona.
 - **signal-classification** - classifies and ranks signals by event-aware recency for outbound fit.
@@ -65,6 +66,7 @@ Other commands: `/draft-icebreaker`, `/verify-email`, `/prep`, `/wrap`.
 
 ## Slash commands
 
+- **/audience-builder** - build an audience from an ICP definition (plan by default, `--execute` to source and enrich in Clay).
 - **/prospect** - the full chain on one company domain.
 - **/draft-icebreaker** - one reviewed icebreaker for a known contact and trigger.
 - **/verify-email** - a one-off email deliverability check.
@@ -109,4 +111,6 @@ All API keys and MCP credentials live on your machine, never in the repo:
 
 ## Stack
 
-Claude Code, Apollo MCP.
+Claude Code, Apollo MCP, Clay Agent Plugin.
+
+The `audience-builder` skill and `/audience-builder` command depend on the Clay Agent Plugin (the `clay` CLI plus its MCP tools), installed and authenticated in Claude Code. Clay is the primary source for TAM sourcing and enrichment, with Apollo MCP as the firmographic fallback and WebSearch as the last resort. See [docs/patterns/clay-integration.md](docs/patterns/clay-integration.md) for how the stack uses Clay's Search, Routines, and Tables primitives (including the read-only table limitation). The rest of the stack runs without Clay.
