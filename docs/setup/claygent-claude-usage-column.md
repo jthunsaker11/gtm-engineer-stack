@@ -10,12 +10,28 @@ Claygent is Clay's AI web-research agent. It runs as a column type inside a Clay
 
 Because Claygent is a table column and the Clay plugin cannot write rows into a table from the CLI, `audience-builder` reaches it through the one supported write path: an inbound webhook source column. The skill POSTs the qualified pool to the webhook, Claygent runs on each new row app-side, and the skill reads the verdicts back with `clay tables`.
 
-Without this column, `audience-builder --execute` falls back to WebSearch for the Claude-usage check. WebSearch works, but it is slower, runs one account at a time from the CLI, and does not persist the verdict in Clay. This column is the better path. Plan mode needs none of this; the setup here is only required before you run `--execute` and want the app-side check.
+## Plan requirements: this column is a Growth+ upgrade, not a baseline
+
+Inbound webhook sources require Clay's **Growth plan or higher**. Claygent web-research columns sit behind the same paid tier. So the entire app-side path this guide describes (webhook source, Claygent column, POST-and-read-back) is only available once your workspace is on Growth or above.
+
+**You do not need any of that to run `audience-builder --execute`.** The `--execute` path works out of the box on the **Launch plan** by using the WebSearch fallback for the Claude-in-production check. WebSearch runs the same qualification logic from the CLI, one account at a time, and reports its verdict in the run output with a citation. No webhook, no Claygent, no table write. This is the default path when you run `--execute` without `--webhook-url`.
+
+Position this Claygent column as the **upgrade path**: once you are on Growth or higher, the app-side column runs the Claude-usage check on the whole pool in parallel, persists each verdict in a Clay table, and lets you read the results back with `clay tables`. It is faster and it keeps the verdict in Clay. The trade-offs against the built-in WebSearch fallback:
+
+| | WebSearch fallback (Launch plan, out of the box) | Claygent column (Growth+ upgrade) |
+| --- | --- | --- |
+| Plan needed | Launch | Growth or higher (webhook + Claygent) |
+| Setup | None | This guide, once per workspace |
+| Speed | One account at a time, from the CLI | Whole pool in parallel, app-side |
+| Verdict persisted in Clay | No | Yes, in the table |
+| Read back with `clay tables` | Not applicable | Yes |
+
+Plan mode needs none of this; the setup here is only required before you run `--execute` on Growth+ and want the app-side check instead of the WebSearch fallback.
 
 ## Prerequisites
 
 - A Clay workspace, with the `clay` CLI and the Clay Agent Plugin installed and authenticated in Claude Code. Confirm with `clay whoami`.
-- A Clay plan that includes **Claygent** and **webhook sources**. These are paid-plan features (Explorer and up at time of writing). Check your plan in the Clay app under Settings, Billing.
+- A Clay plan that includes **Claygent** and **webhook sources**. Both require the **Growth plan or higher** (see [Plan requirements](#plan-requirements-this-column-is-a-growth-upgrade-not-a-baseline) above). On the Launch plan, skip this whole guide and use the built-in WebSearch fallback, which `audience-builder --execute` uses by default. Check your plan in the Clay app under Settings, Billing.
 - To read verdicts back with `clay tables query`, a plan with **API table sync** (Enterprise). Without it, read back with the `table` MCP tool or a CSV export instead. Both alternatives are covered below.
 - Claygent consumes credits per run. Confirm your credit balance with `clay credits` before running it across a pool.
 
