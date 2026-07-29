@@ -1,25 +1,29 @@
-# Persona priority lists by stage
+# Persona priority lists by buying-committee role
 
-## Seed
-1. Founder
-2. CEO
-3. Co-founder
+Wozcode sells into an enterprise engineering buying committee. The three roles below are
+priority-ordered within each role. The waterfall in contact-resolver works down economic
+buyer first, then champion, then influencer.
 
-## Series A
-1. Founder
-2. CEO
-3. VP Sales
-4. Head of Growth
+## Economic buyers (own the budget, sign the deal)
+1. CTO
+2. CAIO (Chief AI Officer)
+3. VP Engineering
 
-## Series B
-1. VP Sales
-2. Head of RevOps
-3. Head of Growth
-4. VP Marketing
+## Champions (feel the pain, drive the internal case)
+1. Head of AI
+2. Head of ML
+3. Director of AI Platform
+
+## Influencers (shape the decision, rarely sign)
+1. VP Product
+2. Chief Data Officer
 
 ## Title family expansions for waterfall layer 2
-- "VP Sales" -> ["VP Sales", "VP of Sales", "Vice President of Sales", "SVP Sales", "Chief Revenue Officer", "CRO", "Head of Sales"]
-- "Head of RevOps" -> ["Head of Revenue Operations", "VP RevOps", "Director of Revenue Operations", "VP Sales Operations", "Head of GTM Ops"]
-- "Head of Growth" -> ["VP Growth", "Director of Growth", "Head of Marketing", "VP Marketing"]
-- "Founder" -> ["Founder", "Co-founder", "CEO", "Chief Executive Officer"]
-- (Add more for your specific roles)
+- "CTO" -> ["CTO", "Chief Technology Officer", "SVP Engineering", "EVP Engineering", "Head of Engineering"]
+- "CAIO" -> ["CAIO", "Chief AI Officer", "Chief Artificial Intelligence Officer", "VP AI", "Head of AI"]
+- "VP Engineering" -> ["VP Engineering", "VP of Engineering", "Vice President of Engineering", "SVP Engineering", "Head of Engineering"]
+- "Head of AI" -> ["Head of AI", "Head of Artificial Intelligence", "VP AI", "Director of AI", "Head of Applied AI"]
+- "Head of ML" -> ["Head of ML", "Head of Machine Learning", "VP Machine Learning", "Director of ML", "Head of ML Platform"]
+- "Director of AI Platform" -> ["Director of AI Platform", "Director AI Infrastructure", "Head of AI Platform", "Head of ML Infrastructure", "Director of ML Platform"]
+- "VP Product" -> ["VP Product", "VP of Product", "Vice President of Product", "Chief Product Officer", "CPO", "Head of Product"]
+- "Chief Data Officer" -> ["Chief Data Officer", "CDO", "VP Data", "Head of Data", "Head of Data Platform"]
