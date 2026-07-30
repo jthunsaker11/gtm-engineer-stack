@@ -26,6 +26,31 @@ See [personas.md](personas.md) for the role-ordered priority lists. In short, th
 - Pure inbound-only companies with no outbound sales motion (no calls to record)
 - Non-English-primary companies (transcription accuracy degrades)
 
+These are the default exclusions for the Recap AI reference ICP. Customize them per client: if you actually sell TO one of these categories (for example a recruiting SaaS selling to staffing firms), remove that entry so it is not excluded.
+
+### Source-time exclusions (Apollo `not_organization_sic_codes`)
+
+When sourcing with `--source apollo`, exclude these SIC codes at source time so the categories never enter the pool. SIC (Standard Industrial Classification) codes are a real, industry-standard taxonomy. Adjust per client.
+
+- `7361`: Employment agencies (recruiting firms)
+- `8111`: Legal services (law firms)
+- `7389`: Business services not elsewhere classified (many agencies)
+- `2721`: Periodicals publishing (media companies)
+- `8611`: Business associations
+- `8221` and `8222`: Colleges and universities
+
+### Post-source keyword exclusions
+
+For rows the SIC filter misses, drop any account whose organization name or description contains one of these terms (case-insensitive). Adjust per client.
+
+- recruiting, recruitment, talent acquisition, staffing, RPO
+- agency, consultancy, consulting group
+- law firm, law office, attorneys, legal services
+- media, publishing, magazine, newspaper
+- association, coalition, foundation
+- nonprofit, non-profit, NGO
+- university, college, academic
+
 ## Lookalike seed accounts (Optional)
 Reference-shaped accounts to expand from as a lookalike seed:
 - Bloomreach

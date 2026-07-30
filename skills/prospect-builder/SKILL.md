@@ -134,6 +134,7 @@ Every source follows the same contract:
 3. Call the source and page for the pool, respecting that source's cost note.
 4. Return a normalized company-row list: at minimum `name` and `domain`, plus whatever firmographics the source returns (size, industry, location, funding). This is the same shape the Clay path already produces, so the pipeline needs no reshape.
 5. Tag each row's `ab_pool_source` with the source id: `clay-search` or `apollo-mcp`.
+6. Run the post-source keyword exclusions from config/icp.md on every row's organization name and description (case-insensitive), and drop any match. This runs on every source, because name and description come from any pool (Clay, Apollo, and future CSV or clay-table). Log the dropped rows separately as an audit trail (company, domain, and the matched term), and report the keyword-dropped count alongside the sourced count, so the exclusion is legible and reviewable.
 
 **Error handling (do not degrade silently):**
 
@@ -151,11 +152,17 @@ Source with the `apollo_mixed_companies_search` MCP tool. The parameters below a
 | Geography | `organization_locations` (HQ location); `organization_not_locations` to exclude a region | |
 | Tech stack / CRM requirement | `currently_using_any_of_technology_uids` (for example `["hubspot", "salesforce"]`) | Real technographic filter. Apollo can filter the CRM at source, which Clay Search cannot, so a CRM-defined ICP sources more precisely here. |
 | Funding | `latest_funding_amount_range` (latest-round amount) or `total_funding_range` (total raised); `latest_funding_date_range` for recency | Apollo has no funding-stage-code parameter. Approximate the stage with an amount band, the same limitation Clay's `funding_amounts` has. |
-| Exclusions | `organization_not_locations`, `not_organization_naics_codes`, `not_organization_sic_codes` | |
+| Exclusions | `not_organization_sic_codes` (the source-time SIC codes from config/icp.md), plus `organization_not_locations` and `not_organization_naics_codes` | Two-stage; see the exclusions note below. |
 
 Cost note: `apollo_mixed_companies_search` costs 1 Apollo credit per request that returns at least one result (0 on no match), and pagination costs 1 credit per page. Confirm the page count and credit total before spending, the same discipline the Clay path uses for routines.
 
 Any ICP attribute Apollo cannot express as a source filter (a sales motion, or a CRM the technographic misses) is handled downstream exactly as on the Clay path: enriched as a signal and confirmed, never forced into a made-up filter.
+
+#### Source-time SIC exclusions (Apollo)
+
+Pass the SIC codes from the Exclusions section of config/icp.md as `not_organization_sic_codes` on the `apollo_mixed_companies_search` call, so those categories (recruiting firms, law firms, media, associations, universities, and general business-services agencies) never enter the pool. Filtering at source is cheaper than dropping rows later and keeps the pool clean from the start. This SIC step uses an Apollo parameter, so it is specific to the Apollo source.
+
+The post-source keyword exclusions from config/icp.md are not source-specific: they run on every sourced pool as the last step of the sourcing contract above (Clay, Apollo, and future sources alike), catching the rows the SIC codes miss. Both lists live in config/icp.md and are customizable per client; a cloning company that sells TO one of these categories (a recruiting SaaS, say) removes that SIC code and keyword so the category is not excluded.
 
 ## Firmographic to Clay Search translation (the `clay` source)
 
