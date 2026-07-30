@@ -81,7 +81,7 @@ Produce these ten layers, in order. Each filter carries a one-line reason. Each 
    a. Call **icp-scoring** with the account plus its enriched signals. It returns `tier` (A/B/C, or `skip`) and `recommended_persona`.
    b. **Assign the motion.** With no `--motion` override, read the Tier defaults from config/motions/ and tag `ab_motion` from the tier: Tier A and B get signal-based, Tier C gets nurture. With a `--motion` override (already validated against config/motions/), tag every row with that single motion. Either way this is a tag, not execution.
    c. For accounts tiered **A or B**, call **contact-resolver** with `company_domain` and `recommended_persona`. It returns one primary contact, the layer that landed it, and a confidence label. With `--enrich-all`, run this step for every tier, including Tier C.
-   d. For each resolved contact, call **email-verification** with the contact's `email`, `email_status`, `email_domain_catchall`, and `company_domain`. It returns the verdict, confidence, and send recommendation.
+   d. For each resolved contact, call **email-verification** with the contact's name and `company_domain`. It acquires the work email through Clay's Work Email waterfall (higher coverage), falling back to the Apollo contact email, then returns the email, its source (`ab_email_source`), the verdict, confidence, and send recommendation.
    e. **Tier C accounts stay in the pool** with their firmographics, signals, and tier. By default they skip steps c and d (no contact or email spend); with `--enrich-all` they pass through the full pipeline like A and B, producing a fully enriched pool. Their downstream treatment is a motion decision, not a drop. Accounts icp-scoring tiers `skip` are recorded as skip and not advanced.
    prospect-builder passes inputs and aggregates outputs; it does not re-implement any of these three steps.
 
@@ -200,7 +200,7 @@ Sourcing runs first and dispatches on `--source` (see the Sourcing section): it 
 3. **Signal routines**: Company Latest Funding, Company News, Company Job Openings, Website Technology Stack. Run on every firmographic-qualified row, because signals are scoring inputs and are not a gate. Then apply the freshness gate (below) so only fresh signals reach icp-scoring.
 4. **Delegate to icp-scoring** (per account): hand it the account plus its signals; record the `tier` and `recommended_persona` it returns.
 5. **Delegate to contact-resolver** (tier A and B accounts only): hand it `company_domain` and `recommended_persona`; record the primary contact.
-6. **Delegate to email-verification** (each resolved contact): hand it the contact's email fields; record the verdict.
+6. **Delegate to email-verification** (each resolved contact): hand it the contact name and domain; it acquires the work email via Clay Work Email (Apollo fallback) and records the email, its source (`ab_email_source`), and the verdict.
 7. **Aggregate** every account into the CSV.
 
 The gate for the expensive person-level work is the tier icp-scoring returns (A or B), not an inline signal or skip computation. Tier C accounts are kept in the pool with firmographics, signals, and tier, and simply skip the contact and email steps. This spends contact and email credits only on the accounts worth reaching now, while keeping the full fit-qualified pool visible for the downstream motion decision.
@@ -225,7 +225,7 @@ The account stays in the pool. An account whose signals are all expired scores a
 
 The Clay plugin cannot write rows into a Clay table (the table surface is read-only via CLI, MCP, and the Public API). So prospect-builder persists like this:
 
-- **Default: CSV.** Write the aggregated audience to a local CSV with columns for firmographics, the source (`ab_pool_source`), each signal (including `ab_funding_round`, `ab_signal_leadership_hire`, and `ab_signal_sales_team_growth`), the tier from icp-scoring, the intended motion (`ab_motion`), the resolved contact (tier A/B rows), and the email-verification verdict. Tell the user how to import it in the Clay app (New table, then CSV import) if they want it in Clay.
+- **Default: CSV.** Write the aggregated audience to a local CSV with columns for firmographics, the source (`ab_pool_source`), each signal (including `ab_funding_round`, `ab_signal_leadership_hire`, and `ab_signal_sales_team_growth`), the tier from icp-scoring, the intended motion (`ab_motion`), the resolved contact (tier A/B rows), the email source (`ab_email_source`), and the email-verification verdict. Tell the user how to import it in the Clay app (New table, then CSV import) if they want it in Clay.
 - **Optional: webhook write-back.** If the user passes `--webhook-url <url>` for a Clay table configured with an inbound webhook source, POST the rows to that URL as well. This is the one supported write path into a Clay table, and it requires the user to have set up the webhook-source column in the Clay app first.
 
 Reading from existing audience tables is fully supported (`clay tables` and the `table` MCP tool); only writing is constrained. State this limitation in the output rather than implying a write happened when it did not.
@@ -246,6 +246,7 @@ The `ab_` prefix is a legacy artifact of this skill's original name (audience-bu
 - `ab_signal_sales_team_growth` (trailing six-month headcount growth percent plus the open sales-role count)
 - `ab_tier` (the tier icp-scoring returned: A, B, C, or skip)
 - `ab_motion` (the intended outreach motion for the row: the tier-default motion when no override is set, or the `--motion` override when one is)
+- `ab_email_source` (which provider produced the contact's email: a Work Email waterfall provider such as `prospeo` or `icypeas`, or `apollo-fallback`)
 - `ab_enriched_at` (date of last enrichment, for the refresh cadence)
 
 The resolved contact and the email-verification verdict travel in their own columns, sourced from the delegated skills rather than produced here. This is a naming convention for output, not a CRM write. Consistent with the stack's CRM doctrine, prospect-builder never writes to a CRM automatically; it produces a labeled package the user reviews and loads.
