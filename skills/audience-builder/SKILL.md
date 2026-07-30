@@ -43,6 +43,7 @@ Match the user's intent to a real routine from that output. Reference routines b
 - **Closed-won examples** (optional, 3 to 5): named customers to expand from as a lookalike seed. See [examples/lookalike-example.md](examples/lookalike-example.md).
 - **Exclusion criteria** (optional): industries, sizes, regions, named accounts, or attributes to keep out.
 - **Offer / product description** (optional): informs which signals matter. Signal relevance is read from the buying signals in config/offering.md at runtime, so weighting is grounded in what you sell rather than a hardcoded topic list.
+- **Motion** (optional, `--motion <name>`): overrides motion assignment, forcing a single motion across the whole run, one of the seven in config/motions/. Useful for a named campaign (for example `--motion abm`). Without the flag, audience-builder auto-assigns a motion per row from each motion's Tier defaults: Tier A and B rows get signal-based, Tier C rows get nurture. Either way the assigned motion is written to `ab_motion`; audience-builder tags but does not execute the motion (that is a later skill's job). If `--motion` names a motion that is not a file in config/motions/, reject the run and list the seven valid motions rather than proceeding. Tier decides priority; motion decides treatment.
 
 If the ICP is thin, do not pad it with guesses. Ask one or two sharp questions, or build the plan with the gaps named explicitly. See [examples/blank-icp-example.md](examples/blank-icp-example.md) for the thin-input path.
 
@@ -73,9 +74,10 @@ Produce these ten layers, in order. Each filter carries a one-line reason. Each 
 
 8. **Delegation pipeline (scoring, contacts, email)**. After sourcing and signal enrichment, run each account through the delegated skills in order:
    a. Call **icp-scoring** with the account plus its enriched signals. It returns `tier` (A/B/C, or `skip`) and `recommended_persona`.
-   b. For accounts tiered **A or B**, call **contact-resolver** with `company_domain` and `recommended_persona`. It returns one primary contact, the layer that landed it, and a confidence label.
-   c. For each resolved contact, call **email-verification** with the contact's `email`, `email_status`, `email_domain_catchall`, and `company_domain`. It returns the verdict, confidence, and send recommendation.
-   d. **Tier C accounts stay in the pool** with their firmographics, signals, and tier, but do not get contact or email spend. Their downstream treatment is a motion decision, not a drop. Accounts icp-scoring tiers `skip` are recorded as skip and not advanced.
+   b. **Assign the motion.** With no `--motion` override, read the Tier defaults from config/motions/ and tag `ab_motion` from the tier: Tier A and B get signal-based, Tier C gets nurture. With a `--motion` override (already validated against config/motions/), tag every row with that single motion. Either way this is a tag, not execution.
+   c. For accounts tiered **A or B**, call **contact-resolver** with `company_domain` and `recommended_persona`. It returns one primary contact, the layer that landed it, and a confidence label.
+   d. For each resolved contact, call **email-verification** with the contact's `email`, `email_status`, `email_domain_catchall`, and `company_domain`. It returns the verdict, confidence, and send recommendation.
+   e. **Tier C accounts stay in the pool** with their firmographics, signals, and tier, but do not get contact or email spend. Their downstream treatment is a motion decision, not a drop. Accounts icp-scoring tiers `skip` are recorded as skip and not advanced.
    audience-builder passes inputs and aggregates outputs; it does not re-implement any of these three steps.
 
 9. **Refresh cadence**: how often to rebuild each layer, keyed to how fast that data decays (firmographics slow, funding and news fast, contact emails fastest).
@@ -154,7 +156,7 @@ The gate for the expensive person-level work is the tier icp-scoring returns (A 
 
 The Clay plugin cannot write rows into a Clay table (the table surface is read-only via CLI, MCP, and the Public API). So audience-builder persists like this:
 
-- **Default: CSV.** Write the aggregated audience to a local CSV with columns for firmographics, each signal, the tier from icp-scoring, the resolved contact (tier A/B rows), and the email-verification verdict. Tell the user how to import it in the Clay app (New table, then CSV import) if they want it in Clay.
+- **Default: CSV.** Write the aggregated audience to a local CSV with columns for firmographics, each signal, the tier from icp-scoring, the intended motion (`ab_motion`), the resolved contact (tier A/B rows), and the email-verification verdict. Tell the user how to import it in the Clay app (New table, then CSV import) if they want it in Clay.
 - **Optional: webhook write-back.** If the user passes `--webhook-url <url>` for a Clay table configured with an inbound webhook source, POST the rows to that URL as well. This is the one supported write path into a Clay table, and it requires the user to have set up the webhook-source column in the Clay app first.
 
 Reading from existing audience tables is fully supported (`clay tables` and the `table` MCP tool); only writing is constrained. State this limitation in the output rather than implying a write happened when it did not.
@@ -167,6 +169,7 @@ Namespace every field this skill contributes toward a CRM with a stable prefix, 
 - `ab_pool` (the audience/pool label this row belongs to)
 - `ab_signal_*` (one field per signal, for example `ab_signal_funding`, `ab_signal_hiring`)
 - `ab_tier` (the tier icp-scoring returned: A, B, C, or skip)
+- `ab_motion` (the intended outreach motion for the row: the tier-default motion when no override is set, or the `--motion` override when one is)
 - `ab_enriched_at` (date of last enrichment, for the refresh cadence)
 
 The resolved contact and the email-verification verdict travel in their own columns, sourced from the delegated skills rather than produced here. This is a naming convention for output, not a CRM write. Consistent with the stack's CRM doctrine, audience-builder never writes to a CRM automatically; it produces a labeled package the user reviews and loads.
