@@ -1,40 +1,44 @@
 # Your Ideal Customer Profile
 
-Wozcode is the reference ICP for this stack. Edit for your own business if you fork it.
+Recap AI is the reference ICP for this stack. Edit for your own business if you fork it.
 
 ## Companies you target
-- Industry/vertical: developer tools, dev-focused SaaS, and PE-backed vertical SaaS
-- Stage range: enterprise and PE-backed mid-market SaaS (past the seed and early-venture phase)
-- Employee size: 200+ developers on staff (developer headcount, not total headcount)
-- Geographic constraints: US and Europe
-- Motion type: engineering orgs that have moved past the AI experiment phase into core AI infrastructure, actively running coding agents (Claude Code, Cursor) against the Claude API at scale
+- Industry/vertical: B2B SaaS companies running an outbound sales motion
+- Stage range: any. This is a horizontal category. The buyer exists wherever there is a real sales team, from Series A through public.
+- Employee size: 30 to 500 employees, with a sales team of 10 to 100 (a mix of AEs, SDRs, and Sales Managers)
+- Deal size: ACV $20K to $200K
+- CRM: HubSpot or Salesforce as the primary CRM
+- Geographic constraints: US and Canada primary, English-primary sales conversations
+- Motion type: outbound sales motion (reps making calls), not inbound-only self-serve
 
 ## Buyer personas you can sell to
-See [personas.md](personas.md) for the stage-ordered priority lists. In short, the buying committee is:
-- Economic buyers: CTO, CAIO, VP Engineering
-- Champions: Head of AI, Head of ML, Director of AI Platform
-- Influencers: VP Product, Chief Data Officer
+See [personas.md](personas.md) for the role-ordered priority lists. In short, the buying committee is:
+- Economic buyer: VP Sales, CRO, Chief Revenue Officer
+- Champion: Head of RevOps, Sales Operations Manager, Sales Enablement Lead
+- Influencer: VP Engineering (owns the CRM integration), Head of Customer Success (post-sale motion depends on the data)
+- Blocker: VP Legal, Chief Compliance Officer (call-recording privacy and consent)
 
 ## Exclusions
-- Consultancies and agencies (they resell dev capacity, they are not the end buyer of a developer-spend layer)
-- AI-native peers (they build their own routing and would compete, not buy)
-- Sub-20-developer orgs (too little Claude spend for the 30 to 50% cut to matter)
-- Seed-stage companies (no material developer-AI spend yet, no budget owner for it)
+- Consultancies and agencies (they sell services, not a seat-based sales tool)
+- Single-founder pre-revenue shops (no sales team to record or coach)
+- Sub-10-employee teams (below the 10-seat minimum, no real sales org)
+- Companies with an existing rev intel deployment over 12 months old (entrenched, harder rip-out)
+- Pure inbound-only companies with no outbound sales motion (no calls to record)
+- Non-English-primary companies (transcription accuracy degrades)
 
 ## Lookalike seed accounts
-Closed-won and reference-shaped accounts to expand from as a lookalike seed:
-- Stack Overflow
-- Drata
-- Genesys
-- GoDaddy
-- Expedia
+Reference-shaped accounts to expand from as a lookalike seed:
+- Bloomreach
+- Kustomer
+- LaunchDarkly
+- Formstack
 
 ## Scoring dimensions (used by icp-scoring skill)
 Edit the weights or descriptions if your ICP works differently:
-- Stage fit (enterprise or PE-backed mid-market, past the AI experiment phase)
-- Developer-headcount fit (200+ developers)
-- Motion fit (running coding agents against the Claude API at scale)
-- Buyer presence (a CTO, CAIO, VP Engineering, or Head of AI who owns developer-AI spend)
-- AI infrastructure maturity (core AI infra, not a pilot)
-- Claude-spend signal (enough per-developer Claude usage for a 30 to 50% cut to be material)
+- Stage fit (any stage that has a real, staffed sales team)
+- Headcount fit (30 to 500 employees, sales team of 10 to 100 reps)
+- Motion fit (outbound sales motion with reps on calls, not inbound-only)
+- Buyer presence (a VP Sales, CRO, or Head of RevOps who owns sales tooling budget)
+- Stack fit (HubSpot or Salesforce as the primary CRM)
+- Buying-signal (funding, sales-team scaling, RevOps hire, or competitor evaluation; see the signal patterns in config/offering.md)
 - Reachability

@@ -32,7 +32,7 @@ This is the whole customization surface. With your values in place, the stack wo
 - `config/offering.md` - what you sell and the exact sentence the icebreaker uses to describe it, plus when to drop the ICP qualifier.
 - `config/personas.md` - the title priority lists per stage, and the title-family expansions the Apollo waterfall uses at layer 2.
 
-The files ship with a worked example (a GTM-engineering consultancy) so you can see the shape, then replace the values.
+The files ship with a worked example (Recap AI, a fictional rev-intelligence SaaS company) so you can see the shape, then replace the values.
 
 ## 5. Run your first /prospect
 

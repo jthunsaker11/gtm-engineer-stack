@@ -70,8 +70,8 @@ Why the three-sentence structure: a standalone exploration question followed by 
 
 Exploration question examples (always end with a question mark):
 
-- "Want to explore whether there is a GTM engineering angle worth a conversation?"
-- "Curious whether the integration creates a need on the GTM engineering side?"
+- "Want to explore whether there is a rev intel angle worth a conversation?"
+- "Curious whether the sales-team scaling creates a need on the conversation-intelligence side?"
 - "Worth seeing if there is a fit on the work I do?"
 
 Canonical time-bounded ask:
