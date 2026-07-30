@@ -4,7 +4,7 @@ argument-hint: <company name or domain>
 model: opus
 ---
 
-Run the prospect pipeline on the company in $ARGUMENTS. Default the offering to the consultancy's (GTM engineering: agentic outbound and lifecycle systems for B2B SaaS revenue teams) and the next step to a 10-15 minute call unless told otherwise. Carry every cited fact forward with its source and date. Do not send anything; the deliverable is a draft plus reasoning plus a verified contact for human review.
+Run the prospect pipeline on the company in $ARGUMENTS. Default the offering to the one defined in [config/offering.md](../config/offering.md) and the next step to a 10-15 minute call unless told otherwise. Carry every cited fact forward with its source and date. Do not send anything; the deliverable is a draft plus reasoning plus a verified contact for human review.
 
 Run in this order.
 

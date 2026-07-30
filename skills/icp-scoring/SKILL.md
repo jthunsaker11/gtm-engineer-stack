@@ -1,6 +1,6 @@
 ---
 name: icp-scoring
-description: Use when scoring a company against the consultancy ICP, typically called by the prospect orchestrator after account-research produces a company profile. Returns a structured tier and score verdict as JSON. Invoked explicitly by the orchestrator, not auto-triggered on casual mention.
+description: Use when scoring a company against the ICP in config/icp.md, typically called by the prospect orchestrator after account-research produces a company profile. Returns a structured tier and score verdict as JSON. Invoked explicitly by the orchestrator, not auto-triggered on casual mention.
 ---
 
 # ICP scoring
@@ -19,7 +19,7 @@ Score each 0-10 against the ICP in [config/icp.md](../../config/icp.md). The tot
 - **headcount**: 10 if within your target employee size, scaled down the further outside it the company sits.
 - **motion**: 10 for your target motion, 5 adjacent, 0 off-ICP.
 - **buyer**: 10 if a named target persona (config/personas.md) is on the team, 5 plausible, 0 none.
-- **stack**: 10 for CRM + sequencer + enrichment, 5 partial, 2 none.
+- **stack**: 10 if the company's tooling matches the stack fit defined in config/icp.md, 5 partial, 2 none.
 - **signal**: 10 for a recent funding round, hiring spike, exec hire, or launch; 5 weaker; 3 none.
 - **reachability**: 10 for a clear public footprint, 5 mixed, 3 dark.
 
@@ -49,7 +49,7 @@ Anything in the Exclusions list in config/icp.md caps the relevant dimensions (s
 
 ## Recommended persona
 
-Populate `recommended_persona` from the stage-keyed priority lists in [config/personas.md](../../config/personas.md). For Series C and later, or any off-ICP company, return an empty list (the tier will be skip).
+Populate `recommended_persona` from the priority lists in [config/personas.md](../../config/personas.md), in the order defined there. For any off-ICP or excluded company (per the Exclusions in config/icp.md), return an empty list (the tier will be skip).
 
 ## Rules
 

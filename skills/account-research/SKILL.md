@@ -39,18 +39,20 @@ Produce these sections. Every line that asserts something carries its source inl
 
 ## Framing
 
-Report facts; do not diagnose problems. Write "posted that RevOps spends Fridays reconciling pipeline across four tools [LinkedIn, 2026-06-21]", not "they clearly have a broken pipeline process." The icebreaker turns the fact into an observation. Your job is to hand it a true, sourced fact.
+Report facts; do not diagnose problems. Write "posted that managers cannot review enough calls to coach the growing team [LinkedIn, 2026-06-21]", not "they clearly have a sales coaching problem." The icebreaker turns the fact into an observation. Your job is to hand it a true, sourced fact.
 
 ## Example (compact)
 
-> **Snapshot**: Rippling, HR + IT + finance platform, ~3,000 employees [rippling.com/about, 2026-06].
+The offering here is the one defined in config/offering.md; the prospect is a placeholder.
+
+> **Snapshot**: Acme Analytics, B2B SaaS analytics platform, ~200 employees with a ~40-rep sales team [acme.example/about, 2026-06].
 >
 > **Recent triggers**
-> 1. Public pickup: VP Sales David Lin posted that RevOps loses every Friday reconciling pipeline across four tools [LinkedIn, 2026-06-21]. Fresh, specific, role-relevant.
-> 2. Hire: posted a "RevOps Systems Lead" req last week [careers page, 2026-06-16]. Signals investment in the exact problem.
+> 1. Hiring spike: four Account Executive reqs and a Head of RevOps role open this month [careers page, 2026-06-16]. Signals a scaling sales team, a buying signal for the offer.
+> 2. Public pickup: the VP Sales posted that managers cannot review enough calls to coach the growing team [LinkedIn, 2026-06-21]. Fresh, specific, role-relevant.
 >
-> **Key people**: David Lin, VP Sales, senior decision-maker; active on LinkedIn about GTM data.
+> **Key people**: VP Sales, the economic buyer; Head of RevOps, the likely champion.
 >
-> **Recommended angle**: Reach David Lin. Trigger = the Friday-reconciliation post [LinkedIn, 2026-06-21]. Offering = pipeline source-of-truth sync. Next step = 10-minute call.
+> **Recommended angle**: Reach the VP Sales. Trigger = the call-coaching post [LinkedIn, 2026-06-21]. Offering = the value proposition from config/offering.md. Next step = 10-minute call.
 
 Hand the Recommended angle block straight to the icebreaker skill.
