@@ -62,6 +62,8 @@ Without the abstraction, the provider's API shape leaks into every skill that to
 
 Reference: this is the Adapter pattern (Gamma and colleagues, Design Patterns) and the Dependency Inversion Principle (SOLID): skills depend on an abstraction, and the concrete provider depends on that same abstraction, so neither is welded to the other.
 
+Signal fidelity scales with the connected providers. Some signals are richer from one provider than another: Apollo returns an exact funding round type and a trailing headcount-growth trend that this workspace's Clay routines do not (Clay's Company Latest Funding returns an amount only, and Enrich Company returns a single employee count). A user on Clay alone still gets the signal, through the documented fallbacks: the funding amount band in place of the exact round, and the open-sales-role count in place of the headcount-growth figure. This is intentional design. The stack degrades gracefully when a provider is missing rather than failing hard, so more connected providers mean higher signal fidelity, not a broken run.
+
 ## Mock and fixture default mode (roadmap, not built yet)
 
 The intended default for development and testing is a mock mode that returns realistic fixture data instead of calling live providers, so a cloning user can run the whole chain, see its shape, and validate their configs without spending a single credit or needing every MCP connected.
