@@ -75,9 +75,9 @@ Produce these ten layers, in order. Each filter carries a one-line reason. Each 
 8. **Delegation pipeline (scoring, contacts, email)**. After sourcing and signal enrichment, run each account through the delegated skills in order:
    a. Call **icp-scoring** with the account plus its enriched signals. It returns `tier` (A/B/C, or `skip`) and `recommended_persona`.
    b. **Assign the motion.** With no `--motion` override, read the Tier defaults from config/motions/ and tag `ab_motion` from the tier: Tier A and B get signal-based, Tier C gets nurture. With a `--motion` override (already validated against config/motions/), tag every row with that single motion. Either way this is a tag, not execution.
-   c. For accounts tiered **A or B**, call **contact-resolver** with `company_domain` and `recommended_persona`. It returns one primary contact, the layer that landed it, and a confidence label.
+   c. For accounts tiered **A or B**, call **contact-resolver** with `company_domain` and `recommended_persona`. It returns one primary contact, the layer that landed it, and a confidence label. With `--enrich-all`, run this step for every tier, including Tier C.
    d. For each resolved contact, call **email-verification** with the contact's `email`, `email_status`, `email_domain_catchall`, and `company_domain`. It returns the verdict, confidence, and send recommendation.
-   e. **Tier C accounts stay in the pool** with their firmographics, signals, and tier, but do not get contact or email spend. Their downstream treatment is a motion decision, not a drop. Accounts icp-scoring tiers `skip` are recorded as skip and not advanced.
+   e. **Tier C accounts stay in the pool** with their firmographics, signals, and tier. By default they skip steps c and d (no contact or email spend); with `--enrich-all` they pass through the full pipeline like A and B, producing a fully enriched pool. Their downstream treatment is a motion decision, not a drop. Accounts icp-scoring tiers `skip` are recorded as skip and not advanced.
    audience-builder passes inputs and aggregates outputs; it does not re-implement any of these three steps.
 
 9. **Refresh cadence**: how often to rebuild each layer, keyed to how fast that data decays (firmographics slow, funding and news fast, contact emails fastest).
