@@ -8,7 +8,7 @@ deal size justifies the coordination.
 
 ## Trigger
 A named account list, curated separately from the ICP output. Accounts are not auto-enrolled from
-audience-builder; sales and marketing agree the target list, and membership is deliberate.
+prospect-builder; sales and marketing agree the target list, and membership is deliberate.
 
 ## Anchor style
 Multi-channel coordinated: email plus LinkedIn, with optional direct mail. The message is consistent

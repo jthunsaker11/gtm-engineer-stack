@@ -24,7 +24,7 @@ Aggressive: 4 touches over 10 days.
 Break-up rule: after touch 4 with no reply, exit the account to nurture.
 
 ## Tier defaults
-The default motion for Tier A and Tier B accounts. This is the motion audience-builder tags by default.
+The default motion for Tier A and Tier B accounts. This is the motion prospect-builder tags by default.
 
 ## Approval requirements
 Human-approve for Tier A. Auto-send for Tier B after the output-review pass (Criteria A to E) clears

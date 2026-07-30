@@ -1,30 +1,35 @@
 # gtm-engineer-stack
 
-An opinionated Claude Code stack that turns one slash command into a full B2B outbound chain: account research, ICP scoring with skip gate, signal classification with event-aware recency, Apollo MCP contact resolution with a six-layer fallback waterfall, peer-voice icebreaker drafting, email verification with catch-all detection, plus a deterministic style-guard hook and a five-criterion output reviewer.
+**Fit qualifies. Signals prioritize. Motions route.**
 
-Built to be cloned. Edit three config files for your business and you have a working AI-assisted GTM workspace in 10 minutes.
+An opinionated Claude Code stack for B2B outbound, built to be cloned. It keeps one account universe: [icp-scoring](skills/icp-scoring/SKILL.md) scores every account against your ICP and assigns a tier (A, B, or C), buying signals set the priority within fit, and a motion decides how each account gets worked. Edit three config files for your business and the whole chain runs for you. One command, `/prospect <company-domain>`, runs the full chain in about 30 seconds and hands back a reasoning trail, a reviewed draft, and a verified contact. It never sends.
 
-## What it does
+## Quickstart
 
-One command: `/prospect <company-domain>`. The agent runs the full chain in about 30 seconds and hands back a reasoning trail, a reviewed draft, and a verified contact. It never sends.
+1. Clone the repo, copy `.env.example` to `.env` with your `ANTHROPIC_API_KEY`, and install the Apollo MCP plugin in Claude Code.
+2. Edit the three configs: `config/icp.md` (who you target), `config/offering.md` (what you sell), `config/personas.md` (who you reach). See [populating the configs](docs/setup/populating-configs.md).
+3. Run `/prospect <company-domain>` for one account, or `/prospect-builder <ICP>` to build a tiered pool.
 
-Other commands: `/prospect-builder`, `/draft-icebreaker`, `/verify-email`, `/prep`, `/wrap`.
+## Skills inventory
 
-## Quick start
+- **prospect-builder** - orchestrates the top of the funnel: sources and enriches a pool from Clay, then delegates tiering to icp-scoring, contacts to contact-resolver, and email checks to email-verification. Plan mode by default, `--execute` to run against Clay. Requires the Clay Agent Plugin. The app-side buying-signal check in `--execute` mode needs a one-time Claygent column setup, see [docs/setup](docs/setup/README.md).
+- **account-research** - turns a company into a cited brief.
+- **icp-scoring** - scores against your ICP, returns a tier and a recommended persona.
+- **signal-classification** - classifies and ranks signals by event-aware recency for outbound fit.
+- **contact-resolver** - resolves one real contact via the six-layer fallback waterfall with a confidence label.
+- **icebreaker** - drafts peer-voice outreach calibrated to the trigger, with a stale-trigger gate.
+- **email-verification** - turns Apollo status + catch-all into a verdict and a send recommendation.
+- **meeting-prep** - builds a one-page pre-call brief from public and optional CRM context.
+- **post-call** - turns call notes into a proposed CRM package and a reviewed follow-up.
+- **output-review** - the five-criterion quality gate.
 
-1. Clone this repo.
-2. Copy `.env.example` to `.env`, add your `ANTHROPIC_API_KEY`.
-3. Install the Apollo MCP plugin in Claude Code (or your chosen contact data provider).
-4. Edit `config/icp.md` (who you target).
-5. Edit `config/offering.md` (what you sell).
-6. Edit `config/personas.md` (which titles you reach).
-7. Run `/prospect <company-domain>` in Claude Code.
+## Setup and docs
 
-## Setup guides
+Most of the stack runs with just the three config edits above. The docs cover the rest:
 
-Most of the stack runs with just the config edits above. A few skills have an `--execute` or write path that needs a one-time setup, documented in [docs/setup](docs/setup/README.md):
-
-- **Claygent column for prospect-builder** - `prospect-builder --execute` confirms a company's sales-motion buying signal with a Clay Claygent web-research column fed by an inbound webhook. Build it once per workspace before running `--execute` with the app-side check. Plan mode and the WebSearch fallback need nothing. See [docs/setup/claygent-buying-signal-column.md](docs/setup/claygent-buying-signal-column.md).
+- [Populating the configs](docs/setup/populating-configs.md) - where to find each field, what is Required versus Optional, and how to iterate.
+- [Architecture decisions](docs/design/architecture-decisions.md) - why the stack is shaped this way (fit qualifies, signals prioritize, motions route).
+- [Setup guides](docs/setup/README.md) - one-time setup for the `--execute` and write paths, including the Claygent buying-signal column for prospect-builder.
 
 ## Architecture
 
@@ -57,27 +62,33 @@ Most of the stack runs with just the config edits above. A few skills have an `-
   reasoning trail + draft + contact   (does not send)
 ```
 
-## Skills inventory
-
-- **prospect-builder** - turns an ICP definition into a Clay-sourced, enriched list of accounts and contacts. Sits upstream of icp-scoring: it builds the pool, scoring ranks it. Plan mode by default, `--execute` to run against Clay. Requires the Clay Agent Plugin. The app-side buying-signal check in `--execute` mode needs a one-time Claygent column setup, see [docs/setup](docs/setup/README.md).
-- **account-research** - turns a company into a cited brief.
-- **icp-scoring** - scores against your ICP, returns a tier and a recommended persona.
-- **signal-classification** - classifies and ranks signals by event-aware recency for outbound fit.
-- **contact-resolver** - resolves one real contact via the six-layer fallback waterfall with a confidence label.
-- **icebreaker** - drafts peer-voice outreach calibrated to the trigger, with a stale-trigger gate.
-- **email-verification** - turns Apollo status + catch-all into a verdict and a send recommendation.
-- **meeting-prep** - builds a one-page pre-call brief from public and optional CRM context.
-- **post-call** - turns call notes into a proposed CRM package and a reviewed follow-up.
-- **output-review** - the five-criterion quality gate.
-
 ## Slash commands
 
-- **/prospect-builder** - build an audience from an ICP definition (plan by default, `--execute` to source and enrich in Clay). Plan mode needs no setup; `--execute` with the app-side buying-signal check needs the Claygent column from [docs/setup](docs/setup/README.md).
+- **/prospect-builder** - build a tiered pool from an ICP definition (plan by default, `--execute` to source and enrich in Clay). Plan mode needs no setup; `--execute` with the app-side buying-signal check needs the Claygent column from [docs/setup](docs/setup/README.md).
 - **/prospect** - the full chain on one company domain.
 - **/draft-icebreaker** - one reviewed icebreaker for a known contact and trigger.
 - **/verify-email** - a one-off email deliverability check.
 - **/prep** - a pre-call meeting brief.
 - **/wrap** - a proposed post-call package (review before writing to CRM).
+
+## Motions and where their accounts come from
+
+A motion decides how an account gets worked: its trigger, cadence, anchor style, approval, and suppression rules. The seven motions live in [config/motions/](config/motions/), and prospect-builder tags each account with an intended motion (`ab_motion`). Tier decides priority; motion decides treatment.
+
+prospect-builder's firmographic sourcing naturally produces accounts for three of the seven motions:
+
+- **cold-outbound** - ICP-fit accounts with no active signal (Tier C, or fit accounts with no live signal).
+- **signal-based** - fit accounts with a fresh buying signal (default for Tier A and B).
+- **nurture** - Tier C accounts, or accounts that exited a sequence without a reply.
+
+The other four motions work against external data sources prospect-builder does not source, and each needs its own data feed:
+
+- **abm** - a curated named-account list.
+- **expansion** - existing customer data, from your CRM.
+- **wake-the-dead** - closed-lost accounts, from your CRM.
+- **inbound-followup** - form fills and demo requests, from your web forms.
+
+The webhook receivers that ingest those four external feeds are planned for Tier 1 v2. Today you tag rows from those sources with the matching `--motion` manually.
 
 ## Hooks
 
@@ -92,7 +103,7 @@ See `CLAUDE.md`. Peer voice, no em dashes, source preservation, a three-componen
 
 - `config/icp.md` - who you target.
 - `config/offering.md` - what you sell, how you describe it.
-- `config/personas.md` - title priority lists by stage.
+- `config/personas.md` - the buying committee, roles and titles.
 - Voice doctrine: edit `CLAUDE.md` only if you want to change the fundamental writing rules.
 
 ## CRM integration

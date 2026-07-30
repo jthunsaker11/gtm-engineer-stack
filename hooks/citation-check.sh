@@ -11,7 +11,7 @@
 
 set -uo pipefail
 
-INTERNAL_RE='(^|[/\])(reference|skills|commands|hooks|docs|\.claude-plugin)[/\]'
+INTERNAL_RE='(^|[/\])(reference|skills|commands|hooks|docs|\.claude-plugin)[/\]|(^|[/\])CLAUDE\.md$'
 
 scan() {
   local src="$1" text="$2"

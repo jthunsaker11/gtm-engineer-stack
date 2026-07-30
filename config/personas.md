@@ -9,22 +9,22 @@ The buying committee is priority-ordered for outbound: economic buyer first, the
 then influencer. The blocker is not a prospecting target; it is listed so the committee is
 complete and so outreach can anticipate the objection.
 
-## VP Sales
+## VP Sales (Required)
 - **Buying committee role**: Economic Buyer
 - **Related titles**: CRO, Chief Revenue Officer, VP of Sales, SVP Sales, Head of Sales
 - **KPIs**: revenue attainment, bookings against quota, win rate, time for new reps to reach quota
 
-## Head of RevOps
+## Head of RevOps (Recommended)
 - **Buying committee role**: Champion
 - **Related titles**: Head of Revenue Operations, VP Revenue Operations, Director of Revenue Operations, Sales Operations Manager, Head of Sales Operations
 - **KPIs**: forecast accuracy, CRM data quality and pipeline hygiene, sales process efficiency, tool adoption
 
-## VP Engineering
+## VP Engineering (Optional)
 - **Buying committee role**: Influencer
 - **Related titles**: VP of Engineering, Head of Engineering, Director of Engineering, CTO
 - **KPIs**: system reliability, delivery of platform and integration work, engineering throughput
 
-## VP Legal
+## VP Legal (Optional)
 - **Buying committee role**: Blocker
 - **Related titles**: General Counsel, Chief Compliance Officer, Head of Compliance, Chief Legal Officer
 - **KPIs**: regulatory compliance, legal and data-privacy risk exposure, consent and records-retention adherence

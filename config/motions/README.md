@@ -2,7 +2,7 @@
 
 A motion is how an account gets worked: its trigger, cadence, anchor style, approval rules, and
 suppression rules. Each of the seven motions is one file in this folder. Skills that write or send
-outreach read the relevant motion file to decide treatment; audience-builder tags each account with
+outreach read the relevant motion file to decide treatment; prospect-builder tags each account with
 an intended motion but does not execute it.
 
 ## Tier decides priority, motion decides treatment
@@ -18,7 +18,7 @@ in wake-the-dead (it is closed-lost and a new hire landed). A single motion like
 accounts and also Tier A and B accounts that exhausted a sequence without a reply. Tier sets the
 priority; motion sets the treatment.
 
-audience-builder tags each row with an intended motion (`ab_motion`), auto-assigned per row from the
+prospect-builder tags each row with an intended motion (`ab_motion`), auto-assigned per row from the
 motion Tier defaults (Tier A and B to signal-based, Tier C to nurture) and overridable with the
 `--motion` flag. It does not run the motion. Motion-aware execution belongs to later skills
 (sequence-writer and its companions), which are not built yet.
@@ -37,7 +37,7 @@ motion Tier defaults (Tier A and B to signal-based, Tier C to nurture) and overr
 
 ## Default and override
 
-By default, audience-builder auto-assigns a motion per row from each motion's Tier defaults: Tier A
+By default, prospect-builder auto-assigns a motion per row from each motion's Tier defaults: Tier A
 and B rows get **signal-based**, Tier C rows get **nurture**. The `--motion <name>` flag overrides
 this, forcing a single motion across the whole run (useful for a named campaign), where `<name>` is
 one of the seven files above. An unknown `--motion` name is rejected with the list of valid motions.
