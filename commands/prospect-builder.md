@@ -4,7 +4,7 @@ argument-hint: <ICP description> [seed: closed-won examples] [exclude: criteria]
 model: opus
 ---
 
-Run the `audience-builder` skill on the ICP in $ARGUMENTS.
+Run the `prospect-builder` skill on the ICP in $ARGUMENTS.
 
 Parse the arguments:
 
@@ -12,7 +12,7 @@ Parse the arguments:
 - `seed:` (optional) lists 3 to 5 closed-won customers for lookalike expansion.
 - `exclude:` (optional) lists exclusion criteria.
 - `offer:` (optional) describes the product or service, used to weight signals.
-- `--motion <name>` (optional) overrides motion assignment, forcing a single motion across the whole run, one of the seven in config/motions/ (cold-outbound, signal-based, abm, nurture, inbound-followup, expansion, wake-the-dead). Useful for a named campaign. Without it, audience-builder auto-assigns a motion per row from each motion's Tier defaults: Tier A and B get signal-based, Tier C gets nurture. If `--motion` is passed with a name that is not a file in config/motions/, reject the run with an error listing the seven valid motions; do not proceed. Either way the assigned motion is written to `ab_motion`; the skill does not execute the motion.
+- `--motion <name>` (optional) overrides motion assignment, forcing a single motion across the whole run, one of the seven in config/motions/ (cold-outbound, signal-based, abm, nurture, inbound-followup, expansion, wake-the-dead). Useful for a named campaign. Without it, prospect-builder auto-assigns a motion per row from each motion's Tier defaults: Tier A and B get signal-based, Tier C gets nurture. If `--motion` is passed with a name that is not a file in config/motions/, reject the run with an error listing the seven valid motions; do not proceed. Either way the assigned motion is written to `ab_motion`; the skill does not execute the motion.
 - `--enrich-all` (optional) overrides the default cost gate and runs contact-resolver and email-verification on Tier C accounts too, producing a fully enriched pool. By default only Tier A and B accounts get contact and email enrichment; Tier C stays firmographic, signal, tier, and motion only. Use `--enrich-all` when you want contacts for the whole pool immediately, for example to feed a nurture motion that sends to Tier C.
 - `--execute` (optional) switches from plan mode to execute mode.
 - `--webhook-url <url>` (optional) is a Clay table inbound-webhook URL to POST the audience to, in addition to the default CSV.
@@ -30,4 +30,4 @@ Only when `--execute` is present, run the plan against Clay and the downstream s
 
 Voice and quality rules from CLAUDE.md apply: no em dashes, no clichés or marketing jargon, every filter carries its reasoning, every enrichment step carries a credit-cost note, and every fallback to Apollo MCP or WebSearch is named with its reason in the data source map.
 
-In execute mode, audience-builder delegates tiering to [icp-scoring](../skills/icp-scoring/SKILL.md), contact discovery to [contact-resolver](../skills/contact-resolver/SKILL.md), and email checks to [email-verification](../skills/email-verification/SKILL.md), then aggregates the tiered pool. Build wide and cheap at sourcing; let the delegated skills score, resolve, and verify.
+In execute mode, prospect-builder delegates tiering to [icp-scoring](../skills/icp-scoring/SKILL.md), contact discovery to [contact-resolver](../skills/contact-resolver/SKILL.md), and email checks to [email-verification](../skills/email-verification/SKILL.md), then aggregates the tiered pool. Build wide and cheap at sourcing; let the delegated skills score, resolve, and verify.

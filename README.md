@@ -8,7 +8,7 @@ Built to be cloned. Edit three config files for your business and you have a wor
 
 One command: `/prospect <company-domain>`. The agent runs the full chain in about 30 seconds and hands back a reasoning trail, a reviewed draft, and a verified contact. It never sends.
 
-Other commands: `/audience-builder`, `/draft-icebreaker`, `/verify-email`, `/prep`, `/wrap`.
+Other commands: `/prospect-builder`, `/draft-icebreaker`, `/verify-email`, `/prep`, `/wrap`.
 
 ## Quick start
 
@@ -24,7 +24,7 @@ Other commands: `/audience-builder`, `/draft-icebreaker`, `/verify-email`, `/pre
 
 Most of the stack runs with just the config edits above. A few skills have an `--execute` or write path that needs a one-time setup, documented in [docs/setup](docs/setup/README.md):
 
-- **Claygent column for audience-builder** - `audience-builder --execute` confirms a company's sales-motion buying signal with a Clay Claygent web-research column fed by an inbound webhook. Build it once per workspace before running `--execute` with the app-side check. Plan mode and the WebSearch fallback need nothing. See [docs/setup/claygent-buying-signal-column.md](docs/setup/claygent-buying-signal-column.md).
+- **Claygent column for prospect-builder** - `prospect-builder --execute` confirms a company's sales-motion buying signal with a Clay Claygent web-research column fed by an inbound webhook. Build it once per workspace before running `--execute` with the app-side check. Plan mode and the WebSearch fallback need nothing. See [docs/setup/claygent-buying-signal-column.md](docs/setup/claygent-buying-signal-column.md).
 
 ## Architecture
 
@@ -59,7 +59,7 @@ Most of the stack runs with just the config edits above. A few skills have an `-
 
 ## Skills inventory
 
-- **audience-builder** - turns an ICP definition into a Clay-sourced, enriched list of accounts and contacts. Sits upstream of icp-scoring: it builds the pool, scoring ranks it. Plan mode by default, `--execute` to run against Clay. Requires the Clay Agent Plugin. The app-side buying-signal check in `--execute` mode needs a one-time Claygent column setup, see [docs/setup](docs/setup/README.md).
+- **prospect-builder** - turns an ICP definition into a Clay-sourced, enriched list of accounts and contacts. Sits upstream of icp-scoring: it builds the pool, scoring ranks it. Plan mode by default, `--execute` to run against Clay. Requires the Clay Agent Plugin. The app-side buying-signal check in `--execute` mode needs a one-time Claygent column setup, see [docs/setup](docs/setup/README.md).
 - **account-research** - turns a company into a cited brief.
 - **icp-scoring** - scores against your ICP, returns a tier and a recommended persona.
 - **signal-classification** - classifies and ranks signals by event-aware recency for outbound fit.
@@ -72,7 +72,7 @@ Most of the stack runs with just the config edits above. A few skills have an `-
 
 ## Slash commands
 
-- **/audience-builder** - build an audience from an ICP definition (plan by default, `--execute` to source and enrich in Clay). Plan mode needs no setup; `--execute` with the app-side buying-signal check needs the Claygent column from [docs/setup](docs/setup/README.md).
+- **/prospect-builder** - build an audience from an ICP definition (plan by default, `--execute` to source and enrich in Clay). Plan mode needs no setup; `--execute` with the app-side buying-signal check needs the Claygent column from [docs/setup](docs/setup/README.md).
 - **/prospect** - the full chain on one company domain.
 - **/draft-icebreaker** - one reviewed icebreaker for a known contact and trigger.
 - **/verify-email** - a one-off email deliverability check.
@@ -119,4 +119,4 @@ All API keys and MCP credentials live on your machine, never in the repo:
 
 Claude Code, Apollo MCP, Clay Agent Plugin.
 
-The `audience-builder` skill and `/audience-builder` command depend on the Clay Agent Plugin (the `clay` CLI plus its MCP tools), installed and authenticated in Claude Code. Clay is the primary source for TAM sourcing and enrichment, with Apollo MCP as the firmographic fallback and WebSearch as the last resort. See [docs/patterns/clay-integration.md](docs/patterns/clay-integration.md) for how the stack uses Clay's Search, Routines, and Tables primitives (including the read-only table limitation). The rest of the stack runs without Clay.
+The `prospect-builder` skill and `/prospect-builder` command depend on the Clay Agent Plugin (the `clay` CLI plus its MCP tools), installed and authenticated in Claude Code. Clay is the primary source for TAM sourcing and enrichment, with Apollo MCP as the firmographic fallback and WebSearch as the last resort. See [docs/patterns/clay-integration.md](docs/patterns/clay-integration.md) for how the stack uses Clay's Search, Routines, and Tables primitives (including the read-only table limitation). The rest of the stack runs without Clay.

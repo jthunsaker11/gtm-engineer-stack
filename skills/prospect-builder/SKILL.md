@@ -1,6 +1,6 @@
 ---
-name: audience-builder
-description: Use when turning an ICP definition into an actual account and contact list. audience-builder orchestrates the top of the funnel: it sources a firmographic pool with Clay Search and enriches buying signals, then delegates tiering to icp-scoring, contact discovery to contact-resolver, and email checks to email-verification. Runs in plan mode by default and only touches Clay data when invoked with --execute.
+name: prospect-builder
+description: Use when turning an ICP definition into an actual account and contact list. prospect-builder orchestrates the top of the funnel: it sources a firmographic pool with Clay Search and enriches buying signals, then delegates tiering to icp-scoring, contact discovery to contact-resolver, and email checks to email-verification. Runs in plan mode by default and only touches Clay data when invoked with --execute.
 ---
 
 # Audience builder
@@ -9,13 +9,13 @@ Turn an ICP definition into a real, enriched, tiered list of accounts and contac
 
 ## Where this sits
 
-This is the front of the funnel, and it is an orchestrator, not a monolith. audience-builder owns the two jobs that are genuinely its own: sourcing a firmographic pool (Clay Search) and enriching each account with buying signals (Clay Routines). Everything downstream is delegated to the skill that already owns that logic, so there is one source of truth per concern:
+This is the front of the funnel, and it is an orchestrator, not a monolith. prospect-builder owns the two jobs that are genuinely its own: sourcing a firmographic pool (Clay Search) and enriching each account with buying signals (Clay Routines). Everything downstream is delegated to the skill that already owns that logic, so there is one source of truth per concern:
 
-- **Tiering** is delegated to [icp-scoring](../icp-scoring/SKILL.md). audience-builder hands it the account plus its signals; it returns a `tier` (A/B/C) and a `recommended_persona`.
-- **Contact discovery** is delegated to [contact-resolver](../contact-resolver/SKILL.md). For tier A and B accounts, audience-builder passes the domain and `recommended_persona`; it returns one primary contact with a confidence label.
+- **Tiering** is delegated to [icp-scoring](../icp-scoring/SKILL.md). prospect-builder hands it the account plus its signals; it returns a `tier` (A/B/C) and a `recommended_persona`.
+- **Contact discovery** is delegated to [contact-resolver](../contact-resolver/SKILL.md). For tier A and B accounts, prospect-builder passes the domain and `recommended_persona`; it returns one primary contact with a confidence label.
 - **Email checks** are delegated to [email-verification](../email-verification/SKILL.md). Each resolved contact's email fields go through it for a verdict.
 
-audience-builder does not re-implement scoring, people search, or email logic. It sources, enriches signals, calls those three skills, and aggregates the results. It still emits the firmographic and signal fields icp-scoring reads (stage, headcount, motion, buyer, stack, signal, reachability), so the hand-off needs no reshape.
+prospect-builder does not re-implement scoring, people search, or email logic. It sources, enriches signals, calls those three skills, and aggregates the results. It still emits the firmographic and signal fields icp-scoring reads (stage, headcount, motion, buyer, stack, signal, reachability), so the hand-off needs no reshape.
 
 ## Primary tool: the Clay Agent Plugin
 
@@ -43,7 +43,7 @@ Match the user's intent to a real routine from that output. Reference routines b
 - **Closed-won examples** (optional, 3 to 5): named customers to expand from as a lookalike seed. See [examples/lookalike-example.md](examples/lookalike-example.md).
 - **Exclusion criteria** (optional): industries, sizes, regions, named accounts, or attributes to keep out.
 - **Offer / product description** (optional): informs which signals matter. Signal relevance is read from the buying signals in config/offering.md at runtime, so weighting is grounded in what you sell rather than a hardcoded topic list.
-- **Motion** (optional, `--motion <name>`): overrides motion assignment, forcing a single motion across the whole run, one of the seven in config/motions/. Useful for a named campaign (for example `--motion abm`). Without the flag, audience-builder auto-assigns a motion per row from each motion's Tier defaults: Tier A and B rows get signal-based, Tier C rows get nurture. Either way the assigned motion is written to `ab_motion`; audience-builder tags but does not execute the motion (that is a later skill's job). If `--motion` names a motion that is not a file in config/motions/, reject the run and list the seven valid motions rather than proceeding. Tier decides priority; motion decides treatment.
+- **Motion** (optional, `--motion <name>`): overrides motion assignment, forcing a single motion across the whole run, one of the seven in config/motions/. Useful for a named campaign (for example `--motion abm`). Without the flag, prospect-builder auto-assigns a motion per row from each motion's Tier defaults: Tier A and B rows get signal-based, Tier C rows get nurture. Either way the assigned motion is written to `ab_motion`; prospect-builder tags but does not execute the motion (that is a later skill's job). If `--motion` names a motion that is not a file in config/motions/, reject the run and list the seven valid motions rather than proceeding. Tier decides priority; motion decides treatment.
 
 If the ICP is thin, do not pad it with guesses. Ask one or two sharp questions, or build the plan with the gaps named explicitly. See [examples/blank-icp-example.md](examples/blank-icp-example.md) for the thin-input path.
 
@@ -62,7 +62,7 @@ Produce these ten layers, in order. Each filter carries a one-line reason. Each 
 
 2. **Signal enrichment (inputs to scoring, not gates)**. For each account, enrich the buying signals that matter for the offer, each tagged with its source: `Clay Routine` (a named function like Company Latest Funding, Company News, or Company Job Openings) or `manual` (no Clay coverage; describe the WebSearch step). Signals are scoring inputs, not filters: they do not gate any account out of the audience. Every firmographic-qualified account keeps its place in the pool and carries its signal count into icp-scoring, which uses signals to set the tier. Which signals count as relevant is read from the buying signals defined in config/offering.md at runtime, not from a hardcoded topic list.
 
-3. **Persona scope (handed to contact-resolver)**. The buyer titles come from config/personas.md and travel as icp-scoring's `recommended_persona`. audience-builder does not run its own people search; it delegates contact discovery to contact-resolver, which walks its own waterfall over `recommended_persona`. State which personas the pool targets, and note that the actual contact lookup is delegated.
+3. **Persona scope (handed to contact-resolver)**. The buyer titles come from config/personas.md and travel as icp-scoring's `recommended_persona`. prospect-builder does not run its own people search; it delegates contact discovery to contact-resolver, which walks its own waterfall over `recommended_persona`. State which personas the pool targets, and note that the actual contact lookup is delegated.
 
 4. **Exclusion filters**: the exclude-side Search parameters (for example `industries_exclude`, `location_states_exclude`, `include_company_identifiers` used as a suppression list) plus any exclusion that has to be applied post-hoc because Search cannot express it.
 
@@ -70,7 +70,7 @@ Produce these ten layers, in order. Each filter carries a one-line reason. Each 
 
 6. **Estimated pool size (all fit-qualified accounts)**. The pool includes every firmographic-qualified account that icp-scoring tiers A, B, or C, including Tier C accounts with zero active signals, which the previous signal-gated behavior dropped. In execute mode, sample the first few pages of the Search and extrapolate to an approximate floor, for example "~1,200+ (sampled 3 pages, hasMore=true)", noting Clay Search has no count endpoint. The tier split (how many A, B, and C) is only known after icp-scoring runs. In plan mode, state the method rather than a number.
 
-7. **Enrichment routine order (cheapest-first)**. Order the Clay enrichment audience-builder runs itself so cheap, high-coverage lookups fill firmographics and signals before the delegated calls run. Firmographics already returned by Search cost nothing extra; cheap company lookups fill gaps; signal routines run on every firmographic-qualified row, because signals are scoring inputs and are not gated. Confirm the exact per-item cost with `clay routines get <id>`. The expensive person-level work is not in this list; it is delegated in Layer 8 and gated on the tier icp-scoring returns.
+7. **Enrichment routine order (cheapest-first)**. Order the Clay enrichment prospect-builder runs itself so cheap, high-coverage lookups fill firmographics and signals before the delegated calls run. Firmographics already returned by Search cost nothing extra; cheap company lookups fill gaps; signal routines run on every firmographic-qualified row, because signals are scoring inputs and are not gated. Confirm the exact per-item cost with `clay routines get <id>`. The expensive person-level work is not in this list; it is delegated in Layer 8 and gated on the tier icp-scoring returns.
 
 8. **Delegation pipeline (scoring, contacts, email)**. After sourcing and signal enrichment, run each account through the delegated skills in order:
    a. Call **icp-scoring** with the account plus its enriched signals. It returns `tier` (A/B/C, or `skip`) and `recommended_persona`.
@@ -78,7 +78,7 @@ Produce these ten layers, in order. Each filter carries a one-line reason. Each 
    c. For accounts tiered **A or B**, call **contact-resolver** with `company_domain` and `recommended_persona`. It returns one primary contact, the layer that landed it, and a confidence label. With `--enrich-all`, run this step for every tier, including Tier C.
    d. For each resolved contact, call **email-verification** with the contact's `email`, `email_status`, `email_domain_catchall`, and `company_domain`. It returns the verdict, confidence, and send recommendation.
    e. **Tier C accounts stay in the pool** with their firmographics, signals, and tier. By default they skip steps c and d (no contact or email spend); with `--enrich-all` they pass through the full pipeline like A and B, producing a fully enriched pool. Their downstream treatment is a motion decision, not a drop. Accounts icp-scoring tiers `skip` are recorded as skip and not advanced.
-   audience-builder passes inputs and aggregates outputs; it does not re-implement any of these three steps.
+   prospect-builder passes inputs and aggregates outputs; it does not re-implement any of these three steps.
 
 9. **Refresh cadence**: how often to rebuild each layer, keyed to how fast that data decays (firmographics slow, funding and news fast, contact emails fastest).
 
@@ -154,7 +154,7 @@ The gate for the expensive person-level work is the tier icp-scoring returns (A 
 
 ## Persistence (execute mode)
 
-The Clay plugin cannot write rows into a Clay table (the table surface is read-only via CLI, MCP, and the Public API). So audience-builder persists like this:
+The Clay plugin cannot write rows into a Clay table (the table surface is read-only via CLI, MCP, and the Public API). So prospect-builder persists like this:
 
 - **Default: CSV.** Write the aggregated audience to a local CSV with columns for firmographics, each signal, the tier from icp-scoring, the intended motion (`ab_motion`), the resolved contact (tier A/B rows), and the email-verification verdict. Tell the user how to import it in the Clay app (New table, then CSV import) if they want it in Clay.
 - **Optional: webhook write-back.** If the user passes `--webhook-url <url>` for a Clay table configured with an inbound webhook source, POST the rows to that URL as well. This is the one supported write path into a Clay table, and it requires the user to have set up the webhook-source column in the Clay app first.
@@ -163,7 +163,9 @@ Reading from existing audience tables is fully supported (`clay tables` and the 
 
 ## Ownership map
 
-Namespace every field this skill contributes toward a CRM with a stable prefix, so provenance is legible and audience-builder fields never collide with native CRM or other-tool fields. Default prefix: `ab_`.
+Namespace every field this skill contributes toward a CRM with a stable prefix, so provenance is legible and prospect-builder fields never collide with native CRM or other-tool fields. Default prefix: `ab_`.
+
+The `ab_` prefix is a legacy artifact of this skill's original name (audience-builder). It is kept unchanged for backwards compatibility with existing CSVs and CRM fields, so the field names below did not change when the skill was renamed.
 
 - `ab_source` (which Clay primitive or fallback produced the row)
 - `ab_pool` (the audience/pool label this row belongs to)
@@ -172,7 +174,7 @@ Namespace every field this skill contributes toward a CRM with a stable prefix, 
 - `ab_motion` (the intended outreach motion for the row: the tier-default motion when no override is set, or the `--motion` override when one is)
 - `ab_enriched_at` (date of last enrichment, for the refresh cadence)
 
-The resolved contact and the email-verification verdict travel in their own columns, sourced from the delegated skills rather than produced here. This is a naming convention for output, not a CRM write. Consistent with the stack's CRM doctrine, audience-builder never writes to a CRM automatically; it produces a labeled package the user reviews and loads.
+The resolved contact and the email-verification verdict travel in their own columns, sourced from the delegated skills rather than produced here. This is a naming convention for output, not a CRM write. Consistent with the stack's CRM doctrine, prospect-builder never writes to a CRM automatically; it produces a labeled package the user reviews and loads.
 
 ## Fallbacks
 

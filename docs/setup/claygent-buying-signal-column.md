@@ -1,20 +1,20 @@
 # Claygent column: sales-motion buying-signal check
 
-A step-by-step guide to building the Claygent web-research column that `audience-builder` uses to confirm a company runs an outbound sales motion worth prospecting. This is the one piece of `audience-builder --execute` that lives in the Clay app rather than the CLI, so it has to be set up by hand once per workspace.
+A step-by-step guide to building the Claygent web-research column that `prospect-builder` uses to confirm a company runs an outbound sales motion worth prospecting. This is the one piece of `prospect-builder --execute` that lives in the Clay app rather than the CLI, so it has to be set up by hand once per workspace.
 
 ## Why this column exists
 
-The [audience-builder](../../skills/audience-builder/SKILL.md) skill sources a wide, cheap pool of B2B SaaS companies from Clay Search, then qualifies each account against the signals that matter for the offer. Its single most important qualifier, "runs a real outbound sales motion we can sell into," has no native Clay Search filter and no CLI-runnable routine. Clay Search filters on firmographics; the managed routines cover funding, news, hiring, and contact data, but none of them read a company's careers page or sales-tooling footprint to judge whether there is a staffed sales team on a CRM we integrate with.
+The [prospect-builder](../../skills/prospect-builder/SKILL.md) skill sources a wide, cheap pool of B2B SaaS companies from Clay Search, then qualifies each account against the signals that matter for the offer. Its single most important qualifier, "runs a real outbound sales motion we can sell into," has no native Clay Search filter and no CLI-runnable routine. Clay Search filters on firmographics; the managed routines cover funding, news, hiring, and contact data, but none of them read a company's careers page or sales-tooling footprint to judge whether there is a staffed sales team on a CRM we integrate with.
 
 Claygent is Clay's AI web-research agent. It runs as a column type inside a Clay table, visits the pages you point it at, and returns a structured answer. That is exactly the shape of this check: read the careers page, the team page, and public sales-tooling signals, decide whether there is evidence of an outbound sales motion on HubSpot or Salesforce, and write the verdict back to the row.
 
-Because Claygent is a table column and the Clay plugin cannot write rows into a table from the CLI, `audience-builder` reaches it through the one supported write path: an inbound webhook source column. The skill POSTs the qualified pool to the webhook, Claygent runs on each new row app-side, and the skill reads the verdicts back with `clay tables`.
+Because Claygent is a table column and the Clay plugin cannot write rows into a table from the CLI, `prospect-builder` reaches it through the one supported write path: an inbound webhook source column. The skill POSTs the qualified pool to the webhook, Claygent runs on each new row app-side, and the skill reads the verdicts back with `clay tables`.
 
 ## Plan requirements: this column is a Growth+ upgrade, not a baseline
 
 Inbound webhook sources require Clay's **Growth plan or higher**. Claygent web-research columns sit behind the same paid tier. So the entire app-side path this guide describes (webhook source, Claygent column, POST-and-read-back) is only available once your workspace is on Growth or above.
 
-**You do not need any of that to run `audience-builder --execute`.** The `--execute` path works out of the box on the **Launch plan** by using the WebSearch fallback for the buying-signal check. WebSearch runs the same qualification logic from the CLI, one account at a time, and reports its verdict in the run output with a citation. No webhook, no Claygent, no table write. This is the default path when you run `--execute` without `--webhook-url`.
+**You do not need any of that to run `prospect-builder --execute`.** The `--execute` path works out of the box on the **Launch plan** by using the WebSearch fallback for the buying-signal check. WebSearch runs the same qualification logic from the CLI, one account at a time, and reports its verdict in the run output with a citation. No webhook, no Claygent, no table write. This is the default path when you run `--execute` without `--webhook-url`.
 
 Position this Claygent column as the **upgrade path**: once you are on Growth or higher, the app-side column runs the buying-signal check on the whole pool in parallel, persists each verdict in a Clay table, and lets you read the results back with `clay tables`. It is faster and it keeps the verdict in Clay. The trade-offs against the built-in WebSearch fallback:
 
@@ -31,7 +31,7 @@ Plan mode needs none of this; the setup here is only required before you run `--
 ## Prerequisites
 
 - A Clay workspace, with the `clay` CLI and the Clay Agent Plugin installed and authenticated in Claude Code. Confirm with `clay whoami`.
-- A Clay plan that includes **Claygent** and **webhook sources**. Both require the **Growth plan or higher** (see [Plan requirements](#plan-requirements-this-column-is-a-growth-upgrade-not-a-baseline) above). On the Launch plan, skip this whole guide and use the built-in WebSearch fallback, which `audience-builder --execute` uses by default. Check your plan in the Clay app under Settings, Billing.
+- A Clay plan that includes **Claygent** and **webhook sources**. Both require the **Growth plan or higher** (see [Plan requirements](#plan-requirements-this-column-is-a-growth-upgrade-not-a-baseline) above). On the Launch plan, skip this whole guide and use the built-in WebSearch fallback, which `prospect-builder --execute` uses by default. Check your plan in the Clay app under Settings, Billing.
 - To read verdicts back with `clay tables query`, a plan with **API table sync** (Enterprise). Without it, read back with the `table` MCP tool or a CSV export instead. Both alternatives are covered below.
 - Claygent consumes credits per run. Confirm your credit balance with `clay credits` before running it across a pool.
 
@@ -40,11 +40,11 @@ Plan mode needs none of this; the setup here is only required before you run `--
 ### 1. Create the table
 
 1. In the Clay app, click **New table**, then **Start from scratch** (an empty table, not a Search or import).
-2. Name it something legible and stable, for example `audience-sales-motion`. `audience-builder` does not depend on the table name; you pass the webhook URL, not the name.
+2. Name it something legible and stable, for example `audience-sales-motion`. `prospect-builder` does not depend on the table name; you pass the webhook URL, not the name.
 
 ### 2. Add the inbound webhook source column
 
-This is how rows enter the table. It must exist before `audience-builder` can POST to it.
+This is how rows enter the table. It must exist before `prospect-builder` can POST to it.
 
 1. Click **Add source** (or the **+** at the top of the table), then choose **Webhook** (listed under "Import" or "Monitor for new data," depending on your Clay version).
 2. Clay generates a unique **webhook URL** for this table. Copy it and keep it safe; it is the value you pass as `--webhook-url`.
@@ -57,7 +57,7 @@ If your Clay version does not accept a pasted sample, send one test row first wi
 
 1. Click **Add column**, then choose **Claygent** (sometimes shown as "AI Web Research" or "Use AI").
 2. Pick the **Navigator** variant if your workspace offers named Claygent tiers. Navigator is the web-browsing agent that can visit and read pages, which is what this check needs. If you only see a single Claygent option, use it.
-3. Name the column `ab_signal_sales_motion` so it matches the ownership-map field `audience-builder` expects to read back.
+3. Name the column `ab_signal_sales_motion` so it matches the ownership-map field `prospect-builder` expects to read back.
 4. Paste the [Claygent prompt](#claygent-prompt) below into the column's prompt box.
 5. In the prompt, reference the domain column with Clay's `/` field-insert. Type `/` and pick `company_domain` so the prompt receives the row's real domain at run time.
 6. Set the output to **structured** if the option is offered, with fields `verdict`, `evidence`, and `source_url` (see the prompt). If only free text is available, the prompt still instructs Claygent to return those three as labeled lines.
@@ -108,7 +108,7 @@ The `verdict` values map cleanly onto the audience gate: `qualified` proceeds, `
 
 ## Webhook payload schema
 
-`audience-builder --execute` POSTs one JSON object per qualified account to the webhook URL. This is the contract the webhook source column must accept. Field names use the `ab_` ownership prefix for fields the skill contributes, and plain names for firmographics that came straight off the Clay Search row.
+`prospect-builder --execute` POSTs one JSON object per qualified account to the webhook URL. This is the contract the webhook source column must accept. Field names use the `ab_` ownership prefix for fields the skill contributes, and plain names for firmographics that came straight off the Clay Search row.
 
 Sample payload (paste this into Clay's webhook sample box in step 2):
 
@@ -139,9 +139,9 @@ Field reference:
 | `company_name` | string | Clay Search | Human-readable label. |
 | `company_domain` | string | Clay Search | The input Claygent researches. Required. |
 | `company_linkedin_url` | string | Clay Search | Secondary identifier and dedup key. |
-| `ab_pool` | string | audience-builder | The pool label this row belongs to. |
-| `ab_source` | string | audience-builder | Which primitive produced the row (`clay-search`, `apollo`). |
-| `ab_lookalike_path` | string | audience-builder | `clay-dna` or `apollo`, the lookalike path that surfaced the row. |
+| `ab_pool` | string | prospect-builder | The pool label this row belongs to. |
+| `ab_source` | string | prospect-builder | Which primitive produced the row (`clay-search`, `apollo`). |
+| `ab_lookalike_path` | string | prospect-builder | `clay-dna` or `apollo`, the lookalike path that surfaced the row. |
 | `employee_count` | number | Clay Search or Company Employee Count | Firmographic context for the reviewer. |
 | `industry` | string | Clay Search | Firmographic context. |
 | `country` | string | Clay Search | Firmographic context. |
@@ -150,22 +150,22 @@ Field reference:
 | `ab_signal_news` | string | Company News | The news signal. |
 | `ab_sales_team_size_est` | number | Company Employee Count + Job Openings | Estimated sales-team size, the real 10-to-100-reps bar. |
 | `ab_crm` | string | Website Technology Stack or careers-page signal | Which CRM the company runs (HubSpot or Salesforce qualifies). |
-| `ab_enriched_at` | string (date) | audience-builder | Last enrichment date, for refresh cadence. |
+| `ab_enriched_at` | string (date) | prospect-builder | Last enrichment date, for refresh cadence. |
 
 Only `company_domain` is strictly required for Claygent to run. The rest travel so the verdict lands on a row that already carries its qualifying context, which is what you read back.
 
-Claygent writes its result into `ab_signal_sales_motion` (and, if you configured structured output, the `verdict`, `evidence`, and `source_url` subfields). `audience-builder` does not send that field; Claygent produces it.
+Claygent writes its result into `ab_signal_sales_motion` (and, if you configured structured output, the `verdict`, `evidence`, and `source_url` subfields). `prospect-builder` does not send that field; Claygent produces it.
 
-## Get the webhook URL and pass it to audience-builder
+## Get the webhook URL and pass it to prospect-builder
 
 1. The webhook URL is the one Clay generated in step 2. To find it again later, open the table, click the webhook source column header, and copy the URL from its settings.
 2. Pass it on the execute invocation:
 
 ```
-/audience-builder <your ICP> --execute --webhook-url https://api.clay.com/v3/sources/webhook/pull-in-data-from-a-webhook-xxxxxxxx
+/prospect-builder <your ICP> --execute --webhook-url https://api.clay.com/v3/sources/webhook/pull-in-data-from-a-webhook-xxxxxxxx
 ```
 
-`audience-builder` sources and enriches the pool, then POSTs each qualified account to that URL. It reports how many rows it posted and reminds you that Claygent runs app-side, so verdicts appear in the table a short time after the POST, not instantly.
+`prospect-builder` sources and enriches the pool, then POSTs each qualified account to that URL. It reports how many rows it posted and reminds you that Claygent runs app-side, so verdicts appear in the table a short time after the POST, not instantly.
 
 ## Read Claygent results back
 
@@ -183,7 +183,7 @@ clay tables query <tableId> --filter '{"ab_signal_sales_motion":{"verdict":"qual
 If you do not have API table sync, read back one of these two ways instead:
 
 - **`table` MCP tool**: call it with `mode: "query"` on the table id. This works on any accessible table without the Enterprise sync toggle.
-- **CSV export**: in the Clay app, export the table to CSV and hand the file to `audience-builder` or load it directly.
+- **CSV export**: in the Clay app, export the table to CSV and hand the file to `prospect-builder` or load it directly.
 
 Filter the read-back to `verdict: qualified` to get the accounts that cleared the sales-motion gate. Those are the rows that proceed to people discovery and email enrichment in the audience waterfall. Everything else (`entrenched`, `no_sales_motion`) stops before you spend contact and email credits on it, and `unclear` gets a manual WebSearch check.
 
@@ -227,5 +227,5 @@ The verdict lives in the table, but your CLI read is not seeing it. If `clay tab
 **Claygent returns `unclear` on most rows.**
 Either the prompt is not receiving the domain (confirm you inserted `company_domain` with the `/` picker rather than typing the literal text `/company_domain`), or the companies genuinely lack public evidence. Spot-check one row's domain by hand. If the domain is arriving correctly and the company has a known sales org, tighten the prompt's source list to the specific careers or team path that company uses.
 
-**Everything works in the app but audience-builder posted zero rows.**
-That is an audience-builder qualification result, not a webhook problem. It means no account cleared the firmographic and signal gates that run before the POST. Widen the Layer 1 filters or lower the `minimum_member_count` floor and re-run, or run in plan mode to inspect the pool size first.
+**Everything works in the app but prospect-builder posted zero rows.**
+That is an prospect-builder qualification result, not a webhook problem. It means no account cleared the firmographic and signal gates that run before the POST. Widen the Layer 1 filters or lower the `minimum_member_count` floor and re-run, or run in plan mode to inspect the pool size first.

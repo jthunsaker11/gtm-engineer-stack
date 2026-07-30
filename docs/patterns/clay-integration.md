@@ -1,6 +1,6 @@
 # Clay integration pattern
 
-How this stack uses the Clay Agent Plugin: the primitives, when to reach for each, and the real method and function names. The `audience-builder` skill is the primary consumer; this doc is the reference it points to.
+How this stack uses the Clay Agent Plugin: the primitives, when to reach for each, and the real method and function names. The `prospect-builder` skill is the primary consumer; this doc is the reference it points to.
 
 Everything here is grounded in the plugin's own skill docs and a live `clay routines list` / `clay search filters-mode fields` against the workspace. Do not add a method or function name to this doc that you have not confirmed against the CLI.
 
@@ -125,7 +125,7 @@ clay tables update <id> --query-enabled true   # enable querying (Enterprise; to
 
 ### Persisting an audience
 
-Because there is no table write API, `audience-builder` persists two ways:
+Because there is no table write API, `prospect-builder` persists two ways:
 
 1. **CSV (default)**: write the enriched audience locally, and give the user the Clay-app import steps if they want it in a table.
 2. **Webhook write-back (optional)**: if the user has configured a Clay table with an inbound webhook source and passes its URL, POST the rows to that URL. This is the one supported path into a Clay table, and it depends on app-side setup the user does first.
