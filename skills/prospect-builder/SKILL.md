@@ -39,10 +39,12 @@ Match the user's intent to a real routine from that output. Reference routines b
 
 ## Inputs
 
-- **ICP description** (required): industry, size range, geography, buying stage. Prose is fine; parse it into filter dimensions.
+The three config files are the primary source, per the stack's design: config/icp.md (the ICP), config/personas.md (the buyer personas), and config/offering.md (the offering and its buying signals). With no inline argument, the skill reads config. An inline argument overrides config for that single run; it is not the primary path, and config is not a fallback.
+
+- **ICP description**: comes from config/icp.md by default. An ICP passed inline overrides it for that run. Either way, parse it into filter dimensions (industry, size range, geography, buying stage); prose is fine.
 - **Closed-won examples** (optional, 3 to 5): named customers to expand from as a lookalike seed. See [examples/lookalike-example.md](examples/lookalike-example.md).
 - **Exclusion criteria** (optional): industries, sizes, regions, named accounts, or attributes to keep out.
-- **Offer / product description** (optional): informs which signals matter. Signal relevance is read from the buying signals in config/offering.md at runtime, so weighting is grounded in what you sell rather than a hardcoded topic list.
+- **Offer / product description**: comes from config/offering.md by default; an inline offer description overrides it. It informs which signals matter, and signal relevance is read from the buying signals in config/offering.md at runtime rather than a hardcoded topic list.
 - **Motion** (optional, `--motion <name>`): overrides motion assignment, forcing a single motion across the whole run, one of the seven in config/motions/. Useful for a named campaign (for example `--motion abm`). Without the flag, prospect-builder auto-assigns a motion per row from each motion's Tier defaults: Tier A and B rows get signal-based, Tier C rows get nurture. Either way the assigned motion is written to `ab_motion`; prospect-builder tags but does not execute the motion (that is a later skill's job). If `--motion` names a motion that is not a file in config/motions/, reject the run and list the seven valid motions rather than proceeding. Tier decides priority; motion decides treatment.
 
 If the ICP is thin, do not pad it with guesses. Ask one or two sharp questions, or build the plan with the gaps named explicitly. See [examples/blank-icp-example.md](examples/blank-icp-example.md) for the thin-input path.
@@ -55,6 +57,8 @@ If the ICP is thin, do not pad it with guesses. Ask one or two sharp questions, 
 Default to plan mode. Only execute when the flag is present.
 
 ## Output structure (the plan)
+
+Open the plan with a `Source ICP:` line. config/icp.md is the primary ICP source per the stack's design, so when the ICP comes from config the header reads `Source ICP: config/icp.md`, with no mention of inline input. Only when an ICP is passed inline does it override config for that run; in that case name the inline ICP as the source. Do not frame config as a fallback or imply that inline input is the primary path.
 
 Produce these ten layers, in order. Each filter carries a one-line reason. Each enrichment step carries a credit-cost note.
 
