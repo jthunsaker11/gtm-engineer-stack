@@ -205,6 +205,16 @@ Sourcing runs first and dispatches on `--source` (see the Sourcing section): it 
 
 The gate for the expensive person-level work is the tier icp-scoring returns (A or B), not an inline signal or skip computation. Tier C accounts are kept in the pool with firmographics, signals, and tier, and simply skip the contact and email steps. This spends contact and email credits only on the accounts worth reaching now, while keeping the full fit-qualified pool visible for the downstream motion decision.
 
+### Signal depth: funding round, leadership hire, sales-team growth
+
+Three signals go beyond the raw routine outputs. Use the real fields each source returns. Where a field is not available in this workspace, the note says so, and the signal falls back or is marked unavailable rather than fabricated.
+
+**Exact funding round (`ab_funding_round`).** The intent is to expose the latest round type (Seed, Series A, B, C, and so on) so icp-scoring can score an exact-round match above an amount-band match (see the signal weighting in config/offering.md). Verification: this workspace's `Company Latest Funding` routine returns only an amount (`Latest Funding`), not a round type, so the exact round is not derivable from it. Populate `ab_funding_round` from a source that exposes the round type (Apollo organization enrichment, or a richer funding routine if the workspace adds one). Otherwise fall back to the amount band and mark the round approximate; do not present an amount-derived guess as an exact round.
+
+**Leadership hire (`ab_signal_leadership_hire`, type `leadership_change`).** The highest-converting signal for this category. Detection: query Apollo people search for the account (`q_organization_domains_list`) filtered to the buyer titles from config/personas.md (VP Sales, CRO, Head of RevOps) and to a recent start with `person_days_in_current_title_range` set to `max: 90` (days in current role). Confirm the start date from the enriched `employment_history` (the current entry's `start_date`). Fallback when Apollo is unavailable: a `Company News` event whose summary names a new leader in one of those titles, cross-checked against the event date. Expose the person name, title, and start date. Freshness window: `leadership_change`, 90 days (config/offering.md).
+
+**Sales-team growth (`ab_signal_sales_team_growth`, type `sales_team_growth`).** Fires when the sales org is scaling and sales roles are open: trailing-six-month headcount growth above 20 percent AND `Company Job Openings` showing 5 or more open sales roles (VP Sales, AE, SDR, Sales Manager). Verification: this workspace's `Enrich Company` routine returns a single `employee_count`, not a headcount trend, so the growth figure is not available from it. The real source of six-month headcount growth is Apollo (`organization_headcount_six_month_growth`, returned by Apollo company search and people enrichment), so this signal is computed on the `--source apollo` path or from Apollo enrichment. On a Clay-only pool with no growth figure, degrade the signal to the open-sales-role count alone and mark growth unavailable. No Claygent is used; both inputs come from routines and Apollo data already in the run. Expose the growth percentage and the open-sales-role count. Freshness: uses the `hiring_signal` window (45 days).
+
 ### Signal freshness gate
 
 Signals returned by Clay routines are date-stamped. Any signal whose `event_date` is older than the freshness window for its type in config/offering.md is marked expired and excluded from the signal count icp-scoring uses to set the tier. A signal with no `event_date` is treated as expired too, since freshness cannot be verified (the safer default). Expired signals are not dropped silently: they are preserved in `ab_expired_signals`, each with its date and the window it exceeded, so the audit trail shows what was set aside and why.
@@ -215,7 +225,7 @@ The account stays in the pool. An account whose signals are all expired scores a
 
 The Clay plugin cannot write rows into a Clay table (the table surface is read-only via CLI, MCP, and the Public API). So prospect-builder persists like this:
 
-- **Default: CSV.** Write the aggregated audience to a local CSV with columns for firmographics, the source (`ab_pool_source`), each signal, the tier from icp-scoring, the intended motion (`ab_motion`), the resolved contact (tier A/B rows), and the email-verification verdict. Tell the user how to import it in the Clay app (New table, then CSV import) if they want it in Clay.
+- **Default: CSV.** Write the aggregated audience to a local CSV with columns for firmographics, the source (`ab_pool_source`), each signal (including `ab_funding_round`, `ab_signal_leadership_hire`, and `ab_signal_sales_team_growth`), the tier from icp-scoring, the intended motion (`ab_motion`), the resolved contact (tier A/B rows), and the email-verification verdict. Tell the user how to import it in the Clay app (New table, then CSV import) if they want it in Clay.
 - **Optional: webhook write-back.** If the user passes `--webhook-url <url>` for a Clay table configured with an inbound webhook source, POST the rows to that URL as well. This is the one supported write path into a Clay table, and it requires the user to have set up the webhook-source column in the Clay app first.
 
 Reading from existing audience tables is fully supported (`clay tables` and the `table` MCP tool); only writing is constrained. State this limitation in the output rather than implying a write happened when it did not.
@@ -231,6 +241,9 @@ The `ab_` prefix is a legacy artifact of this skill's original name (audience-bu
 - `ab_pool` (the audience/pool label this row belongs to)
 - `ab_signal_*` (one field per signal, for example `ab_signal_funding`, `ab_signal_hiring`)
 - `ab_expired_signals` (signals the freshness gate dropped, each with its date and the window it exceeded, for audit)
+- `ab_funding_round` (latest funding round type where the source exposes it; amount-band approximation otherwise)
+- `ab_signal_leadership_hire` (a recent VP Sales, CRO, or Head of RevOps hire: person, title, and start date)
+- `ab_signal_sales_team_growth` (trailing six-month headcount growth percent plus the open sales-role count)
 - `ab_tier` (the tier icp-scoring returned: A, B, C, or skip)
 - `ab_motion` (the intended outreach motion for the row: the tier-default motion when no override is set, or the `--motion` override when one is)
 - `ab_enriched_at` (date of last enrichment, for the refresh cadence)

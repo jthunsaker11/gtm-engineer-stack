@@ -70,6 +70,15 @@ for the `signal` dimension and tier assignment; prospect-builder uses them as si
 - Competitor-evaluation signals (visiting Gong, Chorus, Fathom, or Fireflies pages).
 - Sales-team growth of 20%+ over six months (LinkedIn employee-count trend).
 
+## Signal weighting (Recommended)
+Not all signals convert equally. For Recap AI's category:
+
+- A leadership change (a recent VP Sales, CRO, or Head of RevOps hire) is the top-priority signal. A leadership hire in the buyer's own role is the highest-converting outbound trigger, so weight this signal highest.
+- Sales-team growth (headcount scaling plus open sales roles) is the next strongest, since it is the clearest sign the sales org is expanding.
+- An exact funding round match beats an amount-band match: when a company's latest round matches a target round in the buying signals above (Series A, B, or C), score it higher than a company whose total-raised amount merely falls in range.
+
+icp-scoring reads these as weighting guidance; adjust per client.
+
 ## Signal freshness windows (Recommended)
 Signals older than these windows are treated as expired and do not contribute to tier scoring. Windows are calibrated to typical decay per signal type. Adjust per client if the ICP warrants tighter or looser windows.
 
@@ -79,5 +88,7 @@ Signals older than these windows are treated as expired and do not contribute to
 - job_change: 60 days (new role honeymoon)
 - tech_stack_change: 180 days (slow to shift)
 - website_intent: 14 days (fastest decay)
+- leadership_change: 90 days (new leader honeymoon; highest-converting signal)
+- sales_team_growth: uses the hiring_signal window (45 days)
 
 Customize per client: tighten windows for fast-moving categories (dev tools, AI infra) or loosen for slow enterprise deals.
