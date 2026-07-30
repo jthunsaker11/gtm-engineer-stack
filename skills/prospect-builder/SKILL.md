@@ -65,7 +65,7 @@ Produce these ten layers, in order. Each filter carries a one-line reason. Each 
 
 1. **Firmographic filters**, translated to Clay Search parameters. Give the actual `--source-type companies` filter JSON, and a reason per filter. Name any ICP attribute that is not a native Clay Search filter and route it to a routine or Apollo instead (see the coverage section).
 
-2. **Signal enrichment (inputs to scoring, not gates)**. For each account, enrich the buying signals that matter for the offer, each tagged with its source: `Clay Routine` (a named function like Company Latest Funding, Company News, or Company Job Openings) or `manual` (no Clay coverage; describe the WebSearch step). Signals are scoring inputs, not filters: they do not gate any account out of the audience. Every firmographic-qualified account keeps its place in the pool and carries its signal count into icp-scoring, which uses signals to set the tier. Which signals count as relevant is read from the buying signals defined in config/offering.md at runtime, not from a hardcoded topic list.
+2. **Signal enrichment (inputs to scoring, not gates)**. For each account, enrich the buying signals that matter for the offer, each tagged with its source: `Clay Routine` (a named function like Company Latest Funding, Company News, or Company Job Openings) or `manual` (no Clay coverage; describe the WebSearch step). Signals are scoring inputs, not filters: they do not gate any account out of the audience. Every firmographic-qualified account keeps its place in the pool and carries its signal count into icp-scoring, which uses signals to set the tier. Which signals count as relevant is read from the buying signals defined in config/offering.md at runtime, not from a hardcoded topic list. Signals are also freshness-gated before scoring: any signal older than its window in config/offering.md is marked expired and excluded from the signal count icp-scoring uses, and preserved in `ab_expired_signals` for audit (see the Signal freshness gate below).
 
 3. **Persona scope (handed to contact-resolver)**. The buyer titles come from config/personas.md and travel as icp-scoring's `recommended_persona`. prospect-builder does not run its own people search; it delegates contact discovery to contact-resolver, which walks its own waterfall over `recommended_persona`. State which personas the pool targets, and note that the actual contact lookup is delegated.
 
@@ -197,13 +197,19 @@ Sourcing runs first and dispatches on `--source` (see the Sourcing section): it 
 
 1. **Free**: firmographics already on the sourced rows (name, domain, size, industry, location, funding range). Use these to pre-filter obvious non-fits before spending anything.
 2. **Cheap company lookups**: Company Domain, Company Industry, Company Employee Count, Enrich Company. Fill firmographic gaps.
-3. **Signal routines**: Company Latest Funding, Company News, Company Job Openings, Website Technology Stack. Run on every firmographic-qualified row, because signals are scoring inputs and are not a gate.
+3. **Signal routines**: Company Latest Funding, Company News, Company Job Openings, Website Technology Stack. Run on every firmographic-qualified row, because signals are scoring inputs and are not a gate. Then apply the freshness gate (below) so only fresh signals reach icp-scoring.
 4. **Delegate to icp-scoring** (per account): hand it the account plus its signals; record the `tier` and `recommended_persona` it returns.
 5. **Delegate to contact-resolver** (tier A and B accounts only): hand it `company_domain` and `recommended_persona`; record the primary contact.
 6. **Delegate to email-verification** (each resolved contact): hand it the contact's email fields; record the verdict.
 7. **Aggregate** every account into the CSV.
 
 The gate for the expensive person-level work is the tier icp-scoring returns (A or B), not an inline signal or skip computation. Tier C accounts are kept in the pool with firmographics, signals, and tier, and simply skip the contact and email steps. This spends contact and email credits only on the accounts worth reaching now, while keeping the full fit-qualified pool visible for the downstream motion decision.
+
+### Signal freshness gate
+
+Signals returned by Clay routines are date-stamped. Any signal whose `event_date` is older than the freshness window for its type in config/offering.md is marked expired and excluded from the signal count icp-scoring uses to set the tier. A signal with no `event_date` is treated as expired too, since freshness cannot be verified (the safer default). Expired signals are not dropped silently: they are preserved in `ab_expired_signals`, each with its date and the window it exceeded, so the audit trail shows what was set aside and why.
+
+The account stays in the pool. An account whose signals are all expired scores as if it had no fresh signal, which icp-scoring reflects as a lower tier (typically Tier C); it is not removed. This gate runs after signal enrichment and before the icp-scoring delegation, so icp-scoring's own logic is unchanged, it simply receives fewer signals.
 
 ## Persistence (execute mode)
 
@@ -224,6 +230,7 @@ The `ab_` prefix is a legacy artifact of this skill's original name (audience-bu
 - `ab_pool_source` (which source produced the row: `clay-search` or `apollo-mcp`)
 - `ab_pool` (the audience/pool label this row belongs to)
 - `ab_signal_*` (one field per signal, for example `ab_signal_funding`, `ab_signal_hiring`)
+- `ab_expired_signals` (signals the freshness gate dropped, each with its date and the window it exceeded, for audit)
 - `ab_tier` (the tier icp-scoring returned: A, B, C, or skip)
 - `ab_motion` (the intended outreach motion for the row: the tier-default motion when no override is set, or the `--motion` override when one is)
 - `ab_enriched_at` (date of last enrichment, for the refresh cadence)

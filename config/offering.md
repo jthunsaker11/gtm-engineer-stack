@@ -69,3 +69,15 @@ for the `signal` dimension and tier assignment; prospect-builder uses them as si
 - Migration from HubSpot Starter to HubSpot Pro, or onto Salesforce: getting serious about sales infrastructure.
 - Competitor-evaluation signals (visiting Gong, Chorus, Fathom, or Fireflies pages).
 - Sales-team growth of 20%+ over six months (LinkedIn employee-count trend).
+
+## Signal freshness windows (Recommended)
+Signals older than these windows are treated as expired and do not contribute to tier scoring. Windows are calibrated to typical decay per signal type. Adjust per client if the ICP warrants tighter or looser windows.
+
+- funding_event: 90 days (budget window)
+- news_event: 60 days (attention decays)
+- hiring_signal: 45 days (postings churn fast)
+- job_change: 60 days (new role honeymoon)
+- tech_stack_change: 180 days (slow to shift)
+- website_intent: 14 days (fastest decay)
+
+Customize per client: tighten windows for fast-moving categories (dev tools, AI infra) or loosen for slow enterprise deals.
