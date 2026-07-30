@@ -46,6 +46,7 @@ The three config files are the primary source, per the stack's design: config/ic
 - **Exclusion criteria** (optional): industries, sizes, regions, named accounts, or attributes to keep out.
 - **Offer / product description**: comes from config/offering.md by default; an inline offer description overrides it. It informs which signals matter, and signal relevance is read from the buying signals in config/offering.md at runtime rather than a hardcoded topic list.
 - **Motion** (optional, `--motion <name>`): overrides motion assignment, forcing a single motion across the whole run, one of the seven in config/motions/. Useful for a named campaign (for example `--motion abm`). Without the flag, prospect-builder auto-assigns a motion per row from each motion's Tier defaults: Tier A and B rows get signal-based, Tier C rows get nurture. Either way the assigned motion is written to `ab_motion`; prospect-builder tags but does not execute the motion (that is a later skill's job). If `--motion` names a motion that is not a file in config/motions/, reject the run and list the seven valid motions rather than proceeding. Tier decides priority; motion decides treatment.
+- **Source** (optional, `--source <name>`): where the firmographic pool comes from. `clay` (default) uses Clay Search; `apollo` uses Apollo MCP for firmographic and technographic sourcing. Only the sourcing layer changes; the rest of the pipeline runs identically. See the Sourcing section. An unrecognized value, or `apollo` without an authenticated Apollo MCP, stops the run with an error rather than falling back.
 
 If the ICP is thin, do not pad it with guesses. Ask one or two sharp questions, or build the plan with the gaps named explicitly. See [examples/blank-icp-example.md](examples/blank-icp-example.md) for the thin-input path.
 
@@ -91,8 +92,9 @@ Produce these ten layers, in order. Each filter carries a one-line reason. Each 
 Close the plan with a compact machine-readable summary:
 
     {
+      "source": "clay | apollo (the --source used; default clay)",
       "source_type": "companies",
-      "firmographic_filters": { "<clay_filter>": ["<value>"] },
+      "firmographic_filters": { "<source_parameter>": ["<value>"] },
       "exclusion_filters": { "<clay_filter>": ["<value>"] },
       "signal_filters": [
         { "signal": "<name>", "source": "Clay Routine | manual", "routine": "<real routine name or null>" }
@@ -115,7 +117,47 @@ Close the plan with a compact machine-readable summary:
 
 In plan mode the `delegated_invocations`, `tier_counts`, and `total_pool` fields state "plan mode: not run"; they carry real counts only after an `--execute` run.
 
-## Firmographic to Clay Search translation
+## Sourcing (`--source`)
+
+Sourcing the firmographic pool is the one layer that varies by source. Everything downstream (signal enrichment, the icp-scoring, contact-resolver, and email-verification delegations, and aggregation) runs identically no matter where the pool came from. Adding a source means adding a translator here, not touching the pipeline.
+
+Select the source with `--source <name>`:
+
+- `clay` (**default**): Clay Search. Current behavior; see the Clay translation below. If `--source` is omitted, this is used, so existing runs are unchanged.
+- `apollo`: Apollo MCP company search (`apollo_mixed_companies_search`). See the Apollo translation below.
+- `csv` and `clay-table` are planned (same pattern) and not built yet.
+
+Every source follows the same contract:
+
+1. Read the ICP from config/icp.md (or the inline override).
+2. Translate the ICP filter dimensions to that source's real parameters. Never invent a parameter name; confirm against the source's live spec.
+3. Call the source and page for the pool, respecting that source's cost note.
+4. Return a normalized company-row list: at minimum `name` and `domain`, plus whatever firmographics the source returns (size, industry, location, funding). This is the same shape the Clay path already produces, so the pipeline needs no reshape.
+5. Tag each row's `ab_pool_source` with the source id: `clay-search` or `apollo-mcp`.
+
+**Error handling (do not degrade silently):**
+
+- If `--source` is not one of the recognized values, stop and report that the valid values are `clay` and `apollo`. Do not guess.
+- If `--source apollo` is set but the Apollo MCP is not connected or not authenticated, stop with a clear error telling the user to connect and authenticate Apollo. Do NOT fall back to Clay; a silent source switch would change the pool without the user knowing.
+
+### Apollo source translation (`--source apollo`)
+
+Source with the `apollo_mixed_companies_search` MCP tool. The parameters below are the real ones (verified against the tool spec; confirm again at runtime). Two ICP dimensions have no direct Apollo parameter and map to an approximation, called out in the Note column.
+
+| ICP dimension (config/icp.md) | Apollo `apollo_mixed_companies_search` parameter | Note |
+| --- | --- | --- |
+| Industry / vertical | `q_organization_keyword_tags` (for example `["SaaS", "software", "B2B"]`); optionally `organization_naics_codes` or `organization_sic_codes` for a precise code cut | Apollo companies search has no plain `industry` enum parameter. Use keyword tags, or SIC/NAICS codes. |
+| Employee-size band | `organization_num_employees_ranges` (fixed ranges like `"11,50"`, `"51,200"`, `"201,500"`) | Bands are fixed; map the ICP band to the nearest ranges and note the approximation. |
+| Geography | `organization_locations` (HQ location); `organization_not_locations` to exclude a region | |
+| Tech stack / CRM requirement | `currently_using_any_of_technology_uids` (for example `["hubspot", "salesforce"]`) | Real technographic filter. Apollo can filter the CRM at source, which Clay Search cannot, so a CRM-defined ICP sources more precisely here. |
+| Funding | `latest_funding_amount_range` (latest-round amount) or `total_funding_range` (total raised); `latest_funding_date_range` for recency | Apollo has no funding-stage-code parameter. Approximate the stage with an amount band, the same limitation Clay's `funding_amounts` has. |
+| Exclusions | `organization_not_locations`, `not_organization_naics_codes`, `not_organization_sic_codes` | |
+
+Cost note: `apollo_mixed_companies_search` costs 1 Apollo credit per request that returns at least one result (0 on no match), and pagination costs 1 credit per page. Confirm the page count and credit total before spending, the same discipline the Clay path uses for routines.
+
+Any ICP attribute Apollo cannot express as a source filter (a sales motion, or a CRM the technographic misses) is handled downstream exactly as on the Clay path: enriched as a signal and confirmed, never forced into a made-up filter.
+
+## Firmographic to Clay Search translation (the `clay` source)
 
 Discover the real filter names first, never assume them:
 
@@ -144,9 +186,9 @@ Always state in the data source map when an attribute is handled this way, and w
 
 ## Execute pipeline (cheapest-first, then delegate)
 
-Order the run so cheap Clay enrichment fills every account before the delegated, per-account calls spend anything. Confirm per-item cost with `clay routines get <id>` before each step; the tiers below are the ordering principle, not fixed prices.
+Sourcing runs first and dispatches on `--source` (see the Sourcing section): it yields the normalized company-row list with `ab_pool_source` set. Every step below runs identically on that list, whichever source produced it. Order the run so cheap enrichment fills every account before the delegated, per-account calls spend anything. Confirm per-item cost with `clay routines get <id>` before each step; the tiers below are the ordering principle, not fixed prices.
 
-1. **Free**: firmographics already on the Search rows (name, domain, size, industry, location, funding range). Use these to pre-filter obvious non-fits before spending anything.
+1. **Free**: firmographics already on the sourced rows (name, domain, size, industry, location, funding range). Use these to pre-filter obvious non-fits before spending anything.
 2. **Cheap company lookups**: Company Domain, Company Industry, Company Employee Count, Enrich Company. Fill firmographic gaps.
 3. **Signal routines**: Company Latest Funding, Company News, Company Job Openings, Website Technology Stack. Run on every firmographic-qualified row, because signals are scoring inputs and are not a gate.
 4. **Delegate to icp-scoring** (per account): hand it the account plus its signals; record the `tier` and `recommended_persona` it returns.
@@ -160,7 +202,7 @@ The gate for the expensive person-level work is the tier icp-scoring returns (A 
 
 The Clay plugin cannot write rows into a Clay table (the table surface is read-only via CLI, MCP, and the Public API). So prospect-builder persists like this:
 
-- **Default: CSV.** Write the aggregated audience to a local CSV with columns for firmographics, each signal, the tier from icp-scoring, the intended motion (`ab_motion`), the resolved contact (tier A/B rows), and the email-verification verdict. Tell the user how to import it in the Clay app (New table, then CSV import) if they want it in Clay.
+- **Default: CSV.** Write the aggregated audience to a local CSV with columns for firmographics, the source (`ab_pool_source`), each signal, the tier from icp-scoring, the intended motion (`ab_motion`), the resolved contact (tier A/B rows), and the email-verification verdict. Tell the user how to import it in the Clay app (New table, then CSV import) if they want it in Clay.
 - **Optional: webhook write-back.** If the user passes `--webhook-url <url>` for a Clay table configured with an inbound webhook source, POST the rows to that URL as well. This is the one supported write path into a Clay table, and it requires the user to have set up the webhook-source column in the Clay app first.
 
 Reading from existing audience tables is fully supported (`clay tables` and the `table` MCP tool); only writing is constrained. State this limitation in the output rather than implying a write happened when it did not.
@@ -172,6 +214,7 @@ Namespace every field this skill contributes toward a CRM with a stable prefix, 
 The `ab_` prefix is a legacy artifact of this skill's original name (audience-builder). It is kept unchanged for backwards compatibility with existing CSVs and CRM fields, so the field names below did not change when the skill was renamed.
 
 - `ab_source` (which Clay primitive or fallback produced the row)
+- `ab_pool_source` (which source produced the row: `clay-search` or `apollo-mcp`)
 - `ab_pool` (the audience/pool label this row belongs to)
 - `ab_signal_*` (one field per signal, for example `ab_signal_funding`, `ab_signal_hiring`)
 - `ab_tier` (the tier icp-scoring returned: A, B, C, or skip)
