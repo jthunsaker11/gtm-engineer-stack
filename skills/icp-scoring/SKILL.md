@@ -11,7 +11,7 @@ Given a company profile (the output of [account-research](../account-research/SK
 
 A company profile: stage, headcount, product and revenue motion, named people and personas, GTM stack, recent signals, and public footprint. Usually the account-research brief. If a dimension's data is absent, record it in `missing_data` rather than guessing.
 
-Also take `fresh_signal_count`: how many of the account's signals passed the freshness windows in config/offering.md. The caller computes it (prospect-builder applies the freshness gate before delegating). If it is not supplied, treat it as 0 and say so in `tier_cap_reason`, since an unverified count is not evidence of a live signal.
+Also take `fresh_signals`: the account's signals that passed the freshness windows in config/offering.md, each carrying its canonical `type` (the vocabulary in config/offering.md) and its date. The caller computes it; prospect-builder applies the freshness gate before delegating. Types matter, not just the count, because signals are weighted (see below). If it is not supplied, treat it as empty and say so in `tier_cap_reason`, since unverified signals are not evidence of a live one.
 
 ## Scoring dimensions
 
@@ -22,7 +22,7 @@ Score each 0-10 against the ICP in [config/icp.md](../../config/icp.md). The tot
 - **motion**: 10 for your target motion, 5 adjacent, 0 off-ICP.
 - **buyer**: 10 if a named target persona (config/personas.md) is on the team, 5 plausible, 0 none.
 - **stack**: 10 if the company's tooling matches the stack fit defined in config/icp.md, 5 partial, 2 none.
-- **signal**: 10 for a recent funding round, hiring spike, exec hire, or launch; 5 weaker; 3 none.
+- **signal**: read from the Signal weighting table in [config/offering.md](../../config/offering.md). Sum the weights of the account's `fresh_signals` by canonical type, then score: weight 3 or more is 10, weight 2 is 7, weight 1 is 5, weight 0 is 3. Do not hardcode a signal list here; the weights are config so a cloning user can re-rank what converts for them and see the tier distribution actually move.
 - **reachability**: 10 for a clear public footprint, 5 mixed, 3 dark.
 
 Anything in the Exclusions list in config/icp.md caps the relevant dimensions (stage, motion, or buyer) at 0 and lands the company in skip.
@@ -38,11 +38,13 @@ The tier is the worse of two independent judgements: how well the account fits, 
 - C: 25-39
 - skip: < 25
 
-**2. Fresh-signal cap**, from `fresh_signal_count`:
+**2. Fresh-signal cap**, from the summed weight of `fresh_signals` (same weights as the `signal` dimension, read from config/offering.md):
 
-- 2 or more fresh signals: no cap, the fit band stands
-- exactly 1 fresh signal: cap at B
-- 0 fresh signals: cap at C
+- weight 3 or more: no cap, the fit band stands
+- weight 1 or 2: cap at B
+- weight 0 (no fresh signals): cap at C
+
+The cap is weighted, not a plain count, because the two are not the same judgement. One leadership hire (weight 3, the highest in the config) lifts the cap on its own, while two weak signals (weight 1 each) do not. A count-based cap would do the reverse, capping the highest-converting signal at B while letting two weak ones through uncapped, which is backwards from what config/offering.md says converts.
 
 The tier is whichever is worse. Excluded companies land in skip regardless of either judgement; the cap never rescues an excluded or sub-25 account.
 
@@ -58,7 +60,8 @@ The `signal` dimension inside the fit score and the cap are related but not redu
       "tier": "A" | "B" | "C" | "skip",
       "score": <0-70, the fit score>,
       "fit_band": "A" | "B" | "C" | "skip",
-      "fresh_signal_count": <integer>,
+      "fresh_signal_weight": <integer, summed from config/offering.md>,
+      "fresh_signals": [ { "type": "<canonical type>", "weight": <n> } ],
       "tier_cap_reason": "<why the tier differs from the fit band, or 'no cap, fit band stands'>",
       "dimensions": {
         "stage": <0-10>, "headcount": <0-10>, "motion": <0-10>,
@@ -76,7 +79,7 @@ Populate `recommended_persona` from the priority lists in [config/personas.md](.
 
 ## Rules
 
-- Always populate `tier_cap_reason`, even when no cap applied, so the two judgements are legible in the row rather than leaving a reader to reverse-engineer why the tier and the fit band differ. Write it as one line naming both numbers, for example "score 63, fit band A, capped to C by 0 fresh signals" or "no cap, fit band stands".
+- Always populate `tier_cap_reason`, even when no cap applied, so the two judgements are legible in the row rather than leaving a reader to reverse-engineer why the tier and the fit band differ. Name the weight and the signals behind it, not just a count, for example "score 63, fit band A, capped to C by 0 fresh signals", "score 58, fit band A, capped to B by signal weight 2 (news_event, hiring_signal)", or "no cap, fit band stands on signal weight 3 (leadership_change)".
 - If `missing_data` is non-empty, set `recommendation` to "needs more data" rather than scoring confidently on incomplete info. Still return the best-effort score and tier, but flag the gap.
 - A strong fit with no current trigger (the `signal` dimension low) points to "nurture", not "pursue": good account, wrong moment.
 - The reasoning cites the specific facts behind the scores. No unsourced assertions; if a fact came from research, it carries its source.

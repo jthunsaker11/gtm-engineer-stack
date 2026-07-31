@@ -68,16 +68,50 @@ for the `signal` dimension and tier assignment; prospect-builder uses them as si
 - A product launch or new-market-entry announcement: a new sales motion needs tooling.
 - Migration from HubSpot Starter to HubSpot Pro, or onto Salesforce: getting serious about sales infrastructure.
 - Competitor-evaluation signals (visiting Gong, Chorus, Fathom, or Fireflies pages).
+- An acquisition or merger: post-acquisition tool consolidation forces a review of overlapping sales tooling, and the budget to act on it.
 - Sales-team scaling: open sales roles at 15 percent or more of the current sales team, when the team is a real 20-plus-person org (see the sales-team scaling thresholds below).
 
 ## Signal weighting (Recommended)
-Not all signals convert equally. For Recap AI's category:
+Not all signals convert equally, so every signal type carries a weight. icp-scoring reads these weights for two things: the `signal` dimension inside the fit score, and the fresh-signal cap that sets the tier ceiling. Editing a weight here shifts tier distribution, so this section is load-bearing config, not documentation.
 
-- A leadership change (a recent VP Sales, CRO, or Head of RevOps hire) is the top-priority signal. A leadership hire in the buyer's own role is the highest-converting outbound trigger, so weight this signal highest.
-- Sales-team growth (headcount scaling plus open sales roles) is the next strongest, since it is the clearest sign the sales org is expanding.
-- An exact funding round match beats an amount-band match: when a company's latest round matches a target round in the buying signals above (Series A, B, or C), score it higher than a company whose total-raised amount merely falls in range.
+| signal type | weight | why |
+| --- | --- | --- |
+| `leadership_change` | 3 | A VP Sales, CRO, or Head of RevOps hire in the buyer's own role is the highest-converting outbound trigger. |
+| `sales_team_growth` | 3 | The clearest sign the sales org is expanding; see the scaling thresholds below. |
+| `funding_event` (exact round match) | 2 | The latest round matches a target round in the buying signals above. |
+| `acquisition_event` | 2 | Post-acquisition consolidation is a budget event, stronger than a generic news mention. |
+| `funding_event` (amount band only) | 1 | Total raised falls in range, but the round itself is unconfirmed. |
+| `hiring_signal` | 1 | Open sales roles below the sales_team_growth threshold. |
+| `news_event` | 1 | A dated public event with no stronger classification. |
+| `tech_stack_change` | 1 | Slow-moving, rarely a timing trigger on its own. |
+| `job_change` | 1 | Not produced by the pipeline yet. |
+| `website_intent` | 1 | Not produced by the pipeline yet. |
 
-icp-scoring reads these as weighting guidance; adjust per client.
+How icp-scoring uses the summed weight of an account's fresh signals:
+
+- `signal` dimension: weight 3 or more scores 10, weight 2 scores 7, weight 1 scores 5, weight 0 scores 3.
+- Fresh-signal cap: weight 3 or more applies no cap, weight 1 or 2 caps the tier at B, weight 0 caps at C.
+
+The consequence is deliberate. One leadership hire (weight 3) lifts the cap on its own, while two weak signals (weight 1 each) do not: two weak signals are not equivalent to one leadership hire.
+
+Tune per client. A team whose thesis is post-merger consolidation raises `acquisition_event`; a team selling into founder-led orgs may lower `leadership_change`.
+
+### Signal type vocabulary
+These type names are canonical across the stack: prospect-builder emits them, signal-classification classifies into them, icp-scoring weights them. One vocabulary, so weights key to exactly one set of names. signal-classification's older labels map in as follows, kept visible here rather than buried in a skill:
+
+| signal-classification label | canonical type |
+| --- | --- |
+| `exec_hire` | `leadership_change` |
+| `hiring_spike` | `hiring_signal` |
+| `funding_round` | `funding_event` |
+| `acquisition_or_merger` | `acquisition_event` |
+| `tech_stack_change` | `tech_stack_change` |
+| `product_launch` | `news_event` |
+| `expansion` | `news_event` |
+| `public_statement` | `news_event` |
+| `general_signal` | `news_event` |
+
+`product_launch` and `expansion` are genuinely news-shaped, and `public_statement` and `general_signal` are weak by construction, so `news_event` at weight 1 is the right home for all four. `acquisition_or_merger` is not: it keeps its own type and weight, because a client whose thesis is M&A needs that knob rather than having the signal flattened into generic news.
 
 ## Sales-team scaling thresholds (Recommended)
 The sales_team_growth signal measures hiring intensity: open sales roles relative to the current sales team size, not a growth-over-time delta (Apollo exposes current departmental headcount, not sales-department history). It fires when the sales team is real and hiring above the replacement-hiring baseline.
@@ -114,6 +148,7 @@ Signals older than these windows are treated as expired and do not contribute to
 - tech_stack_change: 180 days (stacks shift slowly)
 - website_intent: 14 days (intent decays fastest)
 - leadership_change: 90 days (a new sales leader buys tooling across the first quarter, and profile-update lag means a tighter window would miss real hires)
+- acquisition_event: 90 days (consolidation reviews run for a quarter or more after the deal closes)
 - sales_team_growth: uses the hiring_signal window (30 days), applied to its open-sales-roles numerator
 
 Research these windows are grounded in:
