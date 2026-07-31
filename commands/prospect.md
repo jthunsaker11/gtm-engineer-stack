@@ -34,7 +34,8 @@ Run in this order.
        --- Reasoning trail ---
        Company: <name>
        Stage: <stage>
-       ICP tier: <tier> (score <n>)
+       ICP tier: <tier> (fit score <n>)
+       Tier cap reason: <why the tier differs from the fit band, or "no cap, fit band stands">
        Recommended persona: <priority list>
        Apollo contact pulled: <name, title>
        Layer landed: <1-6> (<what matched>)
