@@ -51,7 +51,7 @@ Two constraints that shape every plan:
 
 | ICP attribute | Native filter? | Handle it with |
 | --- | --- | --- |
-| Funding stage (Series A/B/C) | No | `funding_amounts` band to approximate, then the **Company Latest Funding** routine to confirm |
+| Funding stage (Series A/B/C) | No | `funding_amounts` band to approximate. No Clay routine confirms the round: **Company Latest Funding** returns an amount only. For the exact round use Apollo `apollo_organizations_enrich`, whose `latest_funding_stage` carries it (1 Apollo credit per account). |
 | Tech in use | No | **Website Technology Stack** routine on the candidate set |
 | Recent hiring | No | **Company Job Openings** routine |
 | Recent news / events | No | **Company News** routine |
@@ -82,7 +82,7 @@ Confirmed via `clay routines list`. All are `source: managed` (Clay defaults, pr
 - Company Employee Count
 - Company Job Openings (hiring signal)
 - Company News (news and events signal)
-- Company Latest Funding (round and date; confirms stage)
+- Company Latest Funding (amount only: returns a single `Latest Funding` value, no round type and no date, so it cannot confirm a stage)
 - Company Revenue (Exact)
 - Enrich Company (firmographic bundle from domain or LinkedIn)
 - Website Technology Stack
