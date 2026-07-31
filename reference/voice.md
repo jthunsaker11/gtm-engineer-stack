@@ -19,7 +19,7 @@ Whenever the research step has surfaced a sourced fact about the recipient (a qu
 
 Concrete patterns to flag:
 
-- If the draft contains a verb of speaking (said, mentioned, wrote, shared, talked about, told, posted), the source must appear within fifteen words. Acceptable forms: "In the Apollo acquisition announcement you mentioned X." "On your Topline episode in May you said X." "In your March LinkedIn post you wrote X." Unacceptable forms: "You said X" with no nearby source. "You mentioned X" with no nearby source.
+- If the draft contains a verb of speaking (said, mentioned, wrote, shared, talked about, told, posted), the source must appear within fifteen words. Acceptable forms: "In the Apollo acquisition announcement you mentioned X." "In the Series B announcement you said X." "In the March product launch post you wrote X." Unacceptable forms: "You said X" with no nearby source. "You mentioned X" with no nearby source.
 - If the research step's output JSON had a source field for a fact, and that fact gets reused in the icebreaker, the source field must travel with it into the icebreaker prompt and must appear in the final copy. The icebreaker-craft skill should treat dropping a source as a hard failure.
 - Default when no source can be cited: drop the quote, reference only the observable event.
 
@@ -90,7 +90,7 @@ The skill picks the opener phrasing based on trigger.
 - Product launch, feature release, market expansion
 - M&A activity
 - Tech stack change
-- Public pickup: podcast, post, talk, interview where they said something quotable
+- Public pickup: podcast, post, talk, or interview where they said something quotable. Canonical type `news_event`. This is the one trigger class in this taxonomy with no persisted field, so it carries constraints the others do not: no `ab_` field holds it, prospect-builder cannot produce it, and it is sourced only by account-research's person-activity search, which makes it available on the `/prospect` path alone. Any use must carry its own source and date inline in the copy. Never anchor a pool-built row on it, and never write a calibration anchor from it, because an anchor the pipeline cannot reproduce teaches the skill to invent one.
 - Cold prospect with no trigger (lowest hit rate; use only when context is missing)
 
 **Warm signals**

@@ -36,7 +36,7 @@ Whenever the research step has surfaced a sourced fact about the recipient (a qu
 
 Concrete patterns to flag:
 
-- If the draft contains a verb of speaking (said, mentioned, wrote, shared, talked about, told, posted), the source must appear within fifteen words. Acceptable forms: "In the Apollo acquisition announcement you mentioned X." "On your Topline episode in May you said X." "In your March LinkedIn post you wrote X." Unacceptable forms: "You said X" with no nearby source. "You mentioned X" with no nearby source.
+- If the draft contains a verb of speaking (said, mentioned, wrote, shared, talked about, told, posted), the source must appear within fifteen words. Acceptable forms: "In the Apollo acquisition announcement you mentioned X." "In the Series B announcement you said X." "In the March product launch post you wrote X." Unacceptable forms: "You said X" with no nearby source. "You mentioned X" with no nearby source.
 - If the research step's output JSON had a source field for a fact, and that fact gets reused in the icebreaker, the source field must travel with it into the icebreaker prompt and must appear in the final copy. The icebreaker-craft skill should treat dropping a source as a hard failure.
 - Default when no source can be cited: drop the quote, reference only the observable event.
 
