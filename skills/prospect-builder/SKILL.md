@@ -232,7 +232,7 @@ Fires when BOTH hold:
 Both inputs are already fetched, so this is a computation change with no new API call:
 
 - `departmental_head_count.sales` (the denominator) comes from Apollo `apollo_organizations_enrich`, already fetched on Tier A/B accounts in the funding-round step. It is a current snapshot.
-- `deduped_open_sales_roles` (the numerator) is the deduped, entity-matched open-sales-role count from `Company Job Openings` (VP Sales, AE, SDR, Sales Manager), per the Company Job Openings hardening below, so duplicate postings cannot inflate it. It carries the `hiring_signal` freshness window (45 days), so stale postings do not fire the signal.
+- `deduped_open_sales_roles` (the numerator) is the deduped, entity-matched open-sales-role count from `Company Job Openings` (VP Sales, AE, SDR, Sales Manager), per the Company Job Openings hardening below, so duplicate postings cannot inflate it. It carries the `hiring_signal` freshness window defined in config/offering.md, so stale postings do not fire the signal.
 
 Expose `ab_sales_team_growth_ratio` (the ratio), `ab_sales_team_growth_fires` (boolean, both thresholds met), and `ab_sales_team_growth_reason` (a short explanation, for example `40 sales team, 6 open roles = 15%, fires` or `12 sales team, 4 open roles = below the 20-person team floor, does not fire`). On a Clay-only pool with no `departmental_head_count.sales`, the ratio is unavailable and the signal does not fire; mark it so rather than firing on the raw role count. No Claygent is used. Thresholds are tunable per client in config/offering.md.
 

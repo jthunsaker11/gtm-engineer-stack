@@ -105,15 +105,21 @@ Benchmarks these thresholds are grounded in:
 - Sales-team size by stage: seed 1 to 3, Series A 3 to 8, Series B 5 to 15 (median about 11 at $10 to 50M ARR), Series C and later 15 to 50+, enterprise 50 to 200+.
 
 ## Signal freshness windows (Recommended)
-Signals older than these windows are treated as expired and do not contribute to tier scoring. Windows are calibrated to typical decay per signal type. Adjust per client if the ICP warrants tighter or looser windows.
+Signals older than these windows are treated as expired and do not contribute to tier scoring. Windows are calibrated per signal type against 2026 GTM research (cited below), so tight signals do not fire on stale data and durable ones are not discarded early.
 
-- funding_event: 90 days (budget window)
-- news_event: 60 days (attention decays)
-- hiring_signal: 45 days (postings churn fast)
-- job_change: 60 days (new role honeymoon)
-- tech_stack_change: 180 days (slow to shift)
-- website_intent: 14 days (fastest decay)
-- leadership_change: 90 days (new leader honeymoon; highest-converting signal)
-- sales_team_growth: uses the hiring_signal window (45 days)
+- funding_event: 90 days (elevated buy rate lasts through 90 days post-announcement)
+- news_event: 60 days (attention decays over weeks)
+- hiring_signal: 30 days (job postings churn fast and the ghost-posting rate is high, so a posting older than a month is unreliable)
+- job_change: 60 days (new-role honeymoon)
+- tech_stack_change: 180 days (stacks shift slowly)
+- website_intent: 14 days (intent decays fastest)
+- leadership_change: 90 days (a new sales leader buys tooling across the first quarter, and profile-update lag means a tighter window would miss real hires)
+- sales_team_growth: uses the hiring_signal window (30 days), applied to its open-sales-roles numerator
 
-Customize per client: tighten windows for fast-moving categories (dev tools, AI infra) or loosen for slow enterprise deals.
+Research these windows are grounded in:
+
+- LinkedIn profile-update lag: 1 to 4 weeks typical, 2 weeks most common (Resume Worded, Forage, 2026). A new hire's record lags the actual start, so the leadership window stays at 90 days rather than tightening.
+- Ghost-job-posting rate: 18 to 32 percent of active listings across studies (Clarify Capital 2026, Greenhouse, HR Dive). This is why the hiring window is 30 days, not longer.
+- Funding buying window: peak intent in the first 2 to 3 weeks, elevated buy rate through 90 days post-announcement (Buska, Salesforge, 2026). This sets the funding window at 90 days.
+
+Customize per client: aggressive teams may tighten windows (fast-moving categories like dev tools or AI infra); patient teams selling long enterprise cycles may loosen them. Job postings and leadership hires are different mechanics, so they keep separate windows: tighten the hiring window for churn, but not the leadership window, or real hires that surface late will be missed.
