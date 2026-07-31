@@ -57,6 +57,15 @@ If the ICP is thin, do not pad it with guesses. Ask one or two sharp questions, 
 
 Default to plan mode. Only execute when the flag is present.
 
+## Run scale and cost (`--max-companies`)
+
+`--execute` defaults to a cap of **25 companies** sourced, which is test scale for prototyping and keeps a first run cheap. Raise the cap with `--max-companies <n>` for production:
+
+- Weekly refresh: `--max-companies 500` to `1500`.
+- Full TAM sweep: `--max-companies 3000` or more.
+
+Cost scales roughly linearly with the company count at sourcing (Clay Search paging or Apollo search pages, plus the per-account signal routines), then further with the contact and email enrichment that runs only on Tier A and B accounts. Because the delegation architecture gates contact-resolver and email-verification behind the tier, Tier C accounts carry firmographics, signals, tier, and motion but never reach the paid contact and email steps, so per-company cost stays bounded even at TAM scale: the expensive enrichment is spent only on the accounts worth reaching. Estimate before a large run with the credit-discipline checks (`clay credits`, `clay routines get`), and page the source rather than pulling the whole TAM in one call.
+
 ## Output structure (the plan)
 
 Open the plan with a `Source ICP:` line. config/icp.md is the primary ICP source per the stack's design, so when the ICP comes from config the header reads `Source ICP: config/icp.md`, with no mention of inline input. Only when an ICP is passed inline does it override config for that run; in that case name the inline ICP as the source. Do not frame config as a fallback or imply that inline input is the primary path.
@@ -209,7 +218,7 @@ The gate for the expensive person-level work is the tier icp-scoring returns (A 
 
 Three signals go beyond the raw routine outputs. Use the real fields each source returns. Where a field is not available in this workspace, the note says so, and the signal falls back or is marked unavailable rather than fabricated.
 
-**Exact funding round (`ab_funding_round`).** The intent is to expose the latest round type (Seed, Series A, B, C, and so on) so icp-scoring can score an exact-round match above an amount-band match (see the signal weighting in config/offering.md). Verification: this workspace's `Company Latest Funding` routine returns only an amount (`Latest Funding`), not a round type, so the exact round is not derivable from it. Populate `ab_funding_round` from a source that exposes the round type (Apollo organization enrichment, or a richer funding routine if the workspace adds one). Otherwise fall back to the amount band and mark the round approximate; do not present an amount-derived guess as an exact round.
+**Exact funding round (`ab_funding_round`).** Expose the latest round type (Seed, Series A, B, C, D, and so on) so icp-scoring can score an exact-round match above an amount-band match (see the signal weighting in config/offering.md). The verified source is the Apollo Organization Enrichment tool (`apollo_organizations_enrich`), which returns `latest_funding_stage` (for example `Series D`), `latest_funding_round_date`, and a `funding_events` array of prior rounds. This is a separate paid call, 1 Apollo credit per account: neither the Clay `Company Latest Funding` routine (amount only) nor the Apollo `apollo_mixed_companies_search` response (no funding fields at all) carries the round, so it is not already in memory from sourcing. Run `apollo_organizations_enrich` on the accounts you want the exact round for, bounding cost to the qualified subset the way contact and email are bounded, read `latest_funding_stage` into `ab_funding_round`, and confirm the returned domain matches the account. If Apollo returns no stage for an account, set `ab_funding_round` to `unavailable (Apollo returned no funding_stage data)`. On a Clay-only run with no Apollo enrichment, set it to `unavailable, Clay Company Latest Funding returns amount only; enrich the account with apollo_organizations_enrich for the exact round`. Do not present an amount-derived guess as an exact round, and do not reference a funding routine that does not exist in the workspace.
 
 **Leadership hire (`ab_signal_leadership_hire`, type `leadership_change`).** The highest-converting signal for this category. Detection: query Apollo people search for the account (`q_organization_domains_list`) filtered to the buyer titles from config/personas.md (VP Sales, CRO, Head of RevOps) and to a recent start with `person_days_in_current_title_range` set to `max: 90` (days in current role). Confirm the start date from the enriched `employment_history` (the current entry's `start_date`). Fallback when Apollo is unavailable: a `Company News` event whose summary names a new leader in one of those titles, cross-checked against the event date. Expose the person name, title, and start date. Freshness window: `leadership_change`, 90 days (config/offering.md).
 
@@ -254,7 +263,7 @@ The `ab_` prefix is a legacy artifact of this skill's original name (audience-bu
 - `ab_signal_hiring_raw` (the routine's aggregate Job Openings count, pre-dedup, for comparison against the deduped `ab_signal_hiring`)
 - `ab_signal_hiring_warning` (set when the hiring count is suspicious: deduped roles over 25 percent of headcount, or the aggregate diverging sharply from the deduped records; the row is kept)
 - `ab_expired_signals` (signals the freshness gate dropped, each with its date and the window it exceeded, for audit)
-- `ab_funding_round` (latest funding round type where the source exposes it; amount-band approximation otherwise)
+- `ab_funding_round` (latest funding round type from Apollo `apollo_organizations_enrich` `latest_funding_stage`, for example `Series D`; `unavailable` when the account was not enriched or Apollo returned no stage)
 - `ab_signal_leadership_hire` (a recent VP Sales, CRO, or Head of RevOps hire: person, title, and start date)
 - `ab_signal_sales_team_growth` (trailing six-month headcount growth percent plus the open sales-role count)
 - `ab_tier` (the tier icp-scoring returned: A, B, C, or skip)
