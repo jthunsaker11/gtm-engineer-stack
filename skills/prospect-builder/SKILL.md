@@ -222,7 +222,19 @@ Three signals go beyond the raw routine outputs. Use the real fields each source
 
 **Leadership hire (`ab_signal_leadership_hire`, type `leadership_change`).** The highest-converting signal for this category. Detection: query Apollo people search for the account (`q_organization_domains_list`) filtered to the buyer titles from config/personas.md (VP Sales, CRO, Head of RevOps) and to a recent start with `person_days_in_current_title_range` set to `max: 90` (days in current role). Confirm the start date from the enriched `employment_history` (the current entry's `start_date`). Fallback when Apollo is unavailable: a `Company News` event whose summary names a new leader in one of those titles, cross-checked against the event date. Expose the person name, title, and start date. Freshness window: `leadership_change`, 90 days (config/offering.md).
 
-**Sales-team growth (`ab_signal_sales_team_growth`, type `sales_team_growth`).** Fires when the sales org is scaling and sales roles are open: trailing-six-month headcount growth above 20 percent AND `Company Job Openings` showing 5 or more deduped, entity-matched open sales roles (VP Sales, AE, SDR, Sales Manager; deduped by title plus location per the Company Job Openings hardening below, so duplicate postings cannot fire this signal). Verification: this workspace's `Enrich Company` routine returns a single `employee_count`, not a headcount trend, so the growth figure is not available from it. The real source of six-month headcount growth is Apollo (`organization_headcount_six_month_growth`, returned by Apollo company search and people enrichment), so this signal is computed on the `--source apollo` path or from Apollo enrichment. On a Clay-only pool with no growth figure, degrade the signal to the open-sales-role count alone and mark growth unavailable. No Claygent is used; both inputs come from routines and Apollo data already in the run. Expose the growth percentage and the open-sales-role count. Freshness: uses the `hiring_signal` window (45 days).
+**Sales-team growth (`ab_signal_sales_team_growth`, type `sales_team_growth`).** A point-in-time hiring-intensity signal: how aggressively an account is hiring into its sales org relative to the org's current size. It is not a measured growth-over-time delta, because Apollo exposes only current departmental headcount, not sales-department history: `apollo_organizations_enrich` has no `departmental_head_count_six_month_growth`, no `sales_previous_6mo`, and no `historical_headcount` array, and its only time series (`organization_headcount_six_month_growth`) is company-total and cannot be attributed to sales. So the signal is a ratio, not a trend, and the docs should say so.
+
+Fires when BOTH hold:
+
+- `departmental_head_count.sales >= 20` (a real, staffed sales motion; below this a ratio is noise, since a founder-led or too-early team hiring a couple of reps is not a readable scaling signal), AND
+- `deduped_open_sales_roles / departmental_head_count.sales >= 0.15` (active scaling, above the 5 to 15 percent baseline of replacement hiring; see the sales-team scaling thresholds in config/offering.md).
+
+Both inputs are already fetched, so this is a computation change with no new API call:
+
+- `departmental_head_count.sales` (the denominator) comes from Apollo `apollo_organizations_enrich`, already fetched on Tier A/B accounts in the funding-round step. It is a current snapshot.
+- `deduped_open_sales_roles` (the numerator) is the deduped, entity-matched open-sales-role count from `Company Job Openings` (VP Sales, AE, SDR, Sales Manager), per the Company Job Openings hardening below, so duplicate postings cannot inflate it. It carries the `hiring_signal` freshness window (45 days), so stale postings do not fire the signal.
+
+Expose `ab_sales_team_growth_ratio` (the ratio), `ab_sales_team_growth_fires` (boolean, both thresholds met), and `ab_sales_team_growth_reason` (a short explanation, for example `40 sales team, 6 open roles = 15%, fires` or `12 sales team, 4 open roles = below the 20-person team floor, does not fire`). On a Clay-only pool with no `departmental_head_count.sales`, the ratio is unavailable and the signal does not fire; mark it so rather than firing on the raw role count. No Claygent is used. Thresholds are tunable per client in config/offering.md.
 
 ### Company Job Openings hardening
 
@@ -245,7 +257,7 @@ The account stays in the pool. An account whose signals are all expired scores a
 
 The Clay plugin cannot write rows into a Clay table (the table surface is read-only via CLI, MCP, and the Public API). So prospect-builder persists like this:
 
-- **Default: CSV.** Write the aggregated audience to a local CSV with columns for firmographics, the source (`ab_pool_source`), each signal (including `ab_funding_round`, `ab_signal_leadership_hire`, `ab_signal_sales_team_growth`, `ab_signal_hiring_raw`, and `ab_signal_hiring_warning`), the tier from icp-scoring, the intended motion (`ab_motion`), the resolved contact (tier A/B rows), the email source (`ab_email_source`), and the email-verification verdict. Tell the user how to import it in the Clay app (New table, then CSV import) if they want it in Clay.
+- **Default: CSV.** Write the aggregated audience to a local CSV with columns for firmographics, the source (`ab_pool_source`), each signal (including `ab_funding_round`, `ab_signal_leadership_hire`, `ab_signal_sales_team_growth`, `ab_sales_team_growth_ratio`, `ab_sales_team_growth_fires`, `ab_sales_team_growth_reason`, `ab_signal_hiring_raw`, and `ab_signal_hiring_warning`), the tier from icp-scoring, the intended motion (`ab_motion`), the resolved contact (tier A/B rows), the email source (`ab_email_source`), and the email-verification verdict. Tell the user how to import it in the Clay app (New table, then CSV import) if they want it in Clay.
 - **Optional: webhook write-back.** If the user passes `--webhook-url <url>` for a Clay table configured with an inbound webhook source, POST the rows to that URL as well. This is the one supported write path into a Clay table, and it requires the user to have set up the webhook-source column in the Clay app first.
 
 Reading from existing audience tables is fully supported (`clay tables` and the `table` MCP tool); only writing is constrained. State this limitation in the output rather than implying a write happened when it did not.
@@ -265,7 +277,10 @@ The `ab_` prefix is a legacy artifact of this skill's original name (audience-bu
 - `ab_expired_signals` (signals the freshness gate dropped, each with its date and the window it exceeded, for audit)
 - `ab_funding_round` (latest funding round type from Apollo `apollo_organizations_enrich` `latest_funding_stage`, for example `Series D`; `unavailable` when the account was not enriched or Apollo returned no stage)
 - `ab_signal_leadership_hire` (a recent VP Sales, CRO, or Head of RevOps hire: person, title, and start date)
-- `ab_signal_sales_team_growth` (trailing six-month headcount growth percent plus the open sales-role count)
+- `ab_signal_sales_team_growth` (the sales-team hiring-intensity signal: sales headcount, deduped open sales roles, and whether it fired)
+- `ab_sales_team_growth_ratio` (deduped open sales roles divided by `departmental_head_count.sales`)
+- `ab_sales_team_growth_fires` (boolean: true when sales headcount is at least 20 and the ratio is at least 0.15)
+- `ab_sales_team_growth_reason` (short explanation, for example `40 sales team, 6 open roles = 15%, fires`)
 - `ab_tier` (the tier icp-scoring returned: A, B, C, or skip)
 - `ab_motion` (the intended outreach motion for the row: the tier-default motion when no override is set, or the `--motion` override when one is)
 - `ab_email_source` (which provider produced the contact's email: a Work Email waterfall provider such as `prospeo` or `icypeas`, or `apollo-fallback`)

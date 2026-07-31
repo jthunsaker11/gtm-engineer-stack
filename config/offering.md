@@ -68,7 +68,7 @@ for the `signal` dimension and tier assignment; prospect-builder uses them as si
 - A product launch or new-market-entry announcement: a new sales motion needs tooling.
 - Migration from HubSpot Starter to HubSpot Pro, or onto Salesforce: getting serious about sales infrastructure.
 - Competitor-evaluation signals (visiting Gong, Chorus, Fathom, or Fireflies pages).
-- Sales-team growth of 20%+ over six months (LinkedIn employee-count trend).
+- Sales-team scaling: open sales roles at 15 percent or more of the current sales team, when the team is a real 20-plus-person org (see the sales-team scaling thresholds below).
 
 ## Signal weighting (Recommended)
 Not all signals convert equally. For Recap AI's category:
@@ -78,6 +78,31 @@ Not all signals convert equally. For Recap AI's category:
 - An exact funding round match beats an amount-band match: when a company's latest round matches a target round in the buying signals above (Series A, B, or C), score it higher than a company whose total-raised amount merely falls in range.
 
 icp-scoring reads these as weighting guidance; adjust per client.
+
+## Sales-team scaling thresholds (Recommended)
+The sales_team_growth signal measures hiring intensity: open sales roles relative to the current sales team size, not a growth-over-time delta (Apollo exposes current departmental headcount, not sales-department history). It fires when the sales team is real and hiring above the replacement-hiring baseline.
+
+Thresholds:
+
+- Sales-team floor: `departmental_head_count.sales >= 20`. Below this a ratio is noise; a founder-led or early team hiring a couple of reps is not a readable scaling signal.
+- Scaling ratio: `open sales roles / sales headcount >= 0.15`.
+
+Why a ratio, not an absolute count: raw open-role counts do not scale with team size. A 500-person sales org hiring 3 SDRs is baseline replacement (about 0.6 percent); a 20-person org hiring 3 is real scaling (15 percent). Counting raw roles fires on the wrong accounts; the ratio normalizes for team size.
+
+Scaling bands (open sales roles as a percent of sales headcount):
+
+- 5 to 15 percent: baseline replacement hiring (backfill, normal churn). Signal does not fire.
+- 15 to 25 percent: active scaling. Signal fires.
+- 25 percent and above: hypergrowth.
+
+Tune per client: an enterprise-selling team (longer ramps, larger orgs) may raise the floor to 50; a team that sells to seed-stage buyers may lower it to 10. The 15 percent ratio is the default active-scaling line.
+
+Benchmarks these thresholds are grounded in:
+
+- Growthspree, B2B SaaS SDR and AE quota and productivity benchmarks, 2026.
+- ICONIQ, 2025 SDR-to-AE ratio data (compression from roughly 1.0:1 toward 0.8:1 as tooling absorbed SDR work).
+- ModernLeads, SDR-to-AE ratio benchmarks, 2026.
+- Sales-team size by stage: seed 1 to 3, Series A 3 to 8, Series B 5 to 15 (median about 11 at $10 to 50M ARR), Series C and later 15 to 50+, enterprise 50 to 200+.
 
 ## Signal freshness windows (Recommended)
 Signals older than these windows are treated as expired and do not contribute to tier scoring. Windows are calibrated to typical decay per signal type. Adjust per client if the ICP warrants tighter or looser windows.
