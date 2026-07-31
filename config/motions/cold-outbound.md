@@ -11,9 +11,12 @@ ICP fit alone. No signal is required to enroll. In practice this is the motion f
 and the fallback for any fit account that has no fresher motion available.
 
 ## Anchor style
-Generic pain point drawn from config/offering.md (the value proposition and the common objections),
-not a specific event. Do not use recency verbs; there is no fresh trigger to reference. Surface a
-relevant problem and let the account connect it, per the voice doctrine in CLAUDE.md.
+Generic pain point drawn from config/offering.md (the value proposition and the common objections).
+When the account carries no fresh signal, there is no trigger to reference, so do not use recency
+verbs. When it does carry one (the Tier C with a live signal case), anchor on that signal with its
+source and date the way any dated trigger is handled; the patient cadence is what makes this motion
+different from signal-based, not a rule against naming a real event. Either way, surface a relevant
+problem and let the account connect it, per the voice doctrine in CLAUDE.md.
 
 ## Cadence
 Patient: 3 touches over 3 weeks.
@@ -23,8 +26,12 @@ Patient: 3 touches over 3 weeks.
 Break-up rule: after touch 3 with no reply, exit the account to nurture.
 
 ## Tier defaults
-Tier C by default. Also the default for a Tier A or B account when no live signal exists to justify
-the signal-based motion.
+Not a tier default on its own; the router keys on tier plus fresh-signal count. Cold-outbound owns
+two cells of that table: a Tier C account that does have a live signal (marginal fit, so it gets the
+patient pace and a human, not the aggressive signal-based cadence), and the defensive case of a Tier
+A or B account carrying zero fresh signals, which has fit but no event to anchor. It is also what
+`--motion cold-outbound` forces for an explicit cold campaign. Tier C with no signal belongs to
+nurture, not here.
 
 ## Approval requirements
 Human-approve every touch. Cold accounts carry the highest misfire risk (no context to ground the

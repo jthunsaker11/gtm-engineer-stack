@@ -45,7 +45,7 @@ The three config files are the primary source, per the stack's design: config/ic
 - **Closed-won examples** (optional, 3 to 5): named customers to expand from as a lookalike seed. See [examples/lookalike-example.md](examples/lookalike-example.md).
 - **Exclusion criteria** (optional): industries, sizes, regions, named accounts, or attributes to keep out.
 - **Offer / product description**: comes from config/offering.md by default; an inline offer description overrides it. It informs which signals matter, and signal relevance is read from the buying signals in config/offering.md at runtime rather than a hardcoded topic list.
-- **Motion** (optional, `--motion <name>`): overrides motion assignment, forcing a single motion across the whole run, one of the seven in config/motions/. Useful for a named campaign (for example `--motion abm`). Without the flag, prospect-builder auto-assigns a motion per row from each motion's Tier defaults: Tier A and B rows get signal-based, Tier C rows get nurture. Either way the assigned motion is written to `ab_motion`; prospect-builder tags but does not execute the motion (that is a later skill's job). If `--motion` names a motion that is not a file in config/motions/, reject the run and list the seven valid motions rather than proceeding. Tier decides priority; motion decides treatment.
+- **Motion** (optional, `--motion <name>`): overrides motion assignment, forcing a single motion across the whole run, one of the seven in config/motions/. Useful for a named campaign (for example `--motion abm`). Without the flag, prospect-builder auto-assigns a motion per row from the deterministic routing table in Layer 8b, keyed on the tier and the fresh-signal count together. Either way the assigned motion is written to `ab_motion`; prospect-builder tags but does not execute the motion (that is a later skill's job). If `--motion` names a motion that is not a file in config/motions/, reject the run and list the seven valid motions rather than proceeding. Tier decides priority; motion decides treatment.
 - **Source** (optional, `--source <name>`): where the firmographic pool comes from. `clay` (default) uses Clay Search; `apollo` uses Apollo MCP for firmographic and technographic sourcing. Only the sourcing layer changes; the rest of the pipeline runs identically. See the Sourcing section. An unrecognized value, or `apollo` without an authenticated Apollo MCP, stops the run with an error rather than falling back.
 
 If the ICP is thin, do not pad it with guesses. Ask one or two sharp questions, or build the plan with the gaps named explicitly. See [examples/blank-icp-example.md](examples/blank-icp-example.md) for the thin-input path.
@@ -88,7 +88,17 @@ Produce these ten layers, in order. Each filter carries a one-line reason. Each 
 
 8. **Delegation pipeline (scoring, contacts, email)**. After sourcing and signal enrichment, run each account through the delegated skills in order:
    a. Call **icp-scoring** with the account, its enriched signals, and `fresh_signal_count` (how many signals survived the freshness gate below). It returns `tier` (A/B/C, or `skip`), the fit `score`, `fit_band`, `tier_cap_reason`, and `recommended_persona`. The tier is the worse of the fit band and the fresh-signal cap, so a high-fit account with no live signal comes back Tier C with its fit score intact; persist both (`ab_fit_score`, `ab_tier_cap_reason`) so the row reads as "good account, wrong moment" rather than as a downgrade.
-   b. **Assign the motion.** With no `--motion` override, read the Tier defaults from config/motions/ and tag `ab_motion` from the tier: Tier A and B get signal-based, Tier C gets nurture. With a `--motion` override (already validated against config/motions/), tag every row with that single motion. Either way this is a tag, not execution.
+   b. **Assign the motion.** With a `--motion` override (already validated against config/motions/), tag every row with that single motion. With no override, look the row up in this table, which is keyed on the tier **and** the fresh-signal count, not on the tier alone. Exactly one row matches every account, so the assignment is deterministic:
+
+   | tier | fresh signals | `ab_motion` | why |
+   | --- | --- | --- | --- |
+   | A or B | 1 or more | `signal-based` | fit plus a live event to anchor, so the aggressive cadence is earned |
+   | A or B | 0 | `cold-outbound` | fit but nothing live to anchor; signal-based would promise a 48-hour event touch with no event |
+   | C | 1 or more | `cold-outbound` | marginal fit with something live: patient pace and a human, not the signal-based cadence |
+   | C | 0 | `nurture` | no fit urgency and no event; stay present without an ask |
+   | skip | any | none | not routed and not worked |
+
+   Do not route on tier alone. The fresh-signal cap in icp-scoring already means a Tier A or B account carries at least one fresh signal, so the zero-signal row is unreachable while that cap holds, but routing re-checks the count itself so it stays correct by construction if the cap is ever retuned. Either way this is a tag, not execution.
    c. For accounts tiered **A or B**, call **contact-resolver** with `company_domain` and `recommended_persona`. It returns one primary contact, the layer that landed it, and a confidence label. With `--enrich-all`, run this step for every tier, including Tier C.
    d. For each resolved contact, call **email-verification** with the contact's `full_name`, the account's `company_name`, and `company_domain` (the Work Email waterfall's three required inputs), plus the Apollo fallback fields. It acquires the work email through Clay's Work Email waterfall (higher coverage), falling back to the Apollo contact email, then returns the email, its source (`ab_email_source`), the verdict, confidence, and send recommendation.
    e. **Tier C accounts stay in the pool** with their firmographics, signals, and tier. By default they skip steps c and d (no contact or email spend); with `--enrich-all` they pass through the full pipeline like A and B, producing a fully enriched pool. Their downstream treatment is a motion decision, not a drop. Accounts icp-scoring tiers `skip` are recorded as skip and not advanced.
@@ -284,7 +294,7 @@ The `ab_` prefix is a legacy artifact of this skill's original name (audience-bu
 - `ab_tier` (the tier icp-scoring returned: A, B, C, or skip; the worse of the fit band and the fresh-signal cap)
 - `ab_fit_score` (the 0-70 fit score behind the tier, kept visible so a capped row reads as "good account, wrong moment" rather than a demotion)
 - `ab_tier_cap_reason` (why the tier differs from the fit band, for example `score 63, fit band A, capped to C by 0 fresh signals`, or `no cap, fit band stands`)
-- `ab_motion` (the intended outreach motion for the row: the tier-default motion when no override is set, or the `--motion` override when one is)
+- `ab_motion` (the intended outreach motion for the row: the motion routed from tier plus fresh-signal count when no override is set, or the `--motion` override when one is)
 - `ab_email_source` (which provider produced the contact's email: a Work Email waterfall provider such as `prospeo` or `icypeas`, or `apollo-fallback`)
 - `ab_enriched_at` (date of last enrichment, for the refresh cadence)
 

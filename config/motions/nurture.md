@@ -19,7 +19,9 @@ Break-up rule: none. Nurture continues until the account replies, unsubscribes, 
 (signal-based, inbound-followup) takes over and pulls the account out.
 
 ## Tier defaults
-Tier C by default. Also the destination when a Tier A or B account exhausts a cold-outbound or
+The sole default for a Tier C account with zero fresh signals: no fit urgency and no live event, so
+stay present without an ask. A Tier C account that does have a live signal goes to cold-outbound
+instead. Nurture is also the destination when a Tier A or B account exhausts a cold-outbound or
 signal-based sequence with no reply.
 
 ## Approval requirements

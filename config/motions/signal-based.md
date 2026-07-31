@@ -24,7 +24,10 @@ Aggressive: 4 touches over 10 days.
 Break-up rule: after touch 4 with no reply, exit the account to nurture.
 
 ## Tier defaults
-The default motion for Tier A and Tier B accounts. This is the motion prospect-builder tags by default.
+The default for a Tier A or Tier B account that carries at least one fresh signal, which after the
+fresh-signal cap in icp-scoring is every Tier A and Tier B account. The fresh signal is required, not
+incidental: this motion's trigger is an event and its first touch goes out within 48 hours of it, so
+an account with nothing live to anchor on routes to cold-outbound instead.
 
 ## Approval requirements
 Human-approve for Tier A. Auto-send for Tier B after the output-review pass (Criteria A to E) clears

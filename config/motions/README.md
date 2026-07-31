@@ -19,7 +19,7 @@ accounts and also Tier A and B accounts that exhausted a sequence without a repl
 priority; motion sets the treatment.
 
 prospect-builder tags each row with an intended motion (`ab_motion`), auto-assigned per row from the
-motion Tier defaults (Tier A and B to signal-based, Tier C to nurture) and overridable with the
+routing table below (keyed on tier plus fresh-signal count) and overridable with the
 `--motion` flag. It does not run the motion. Motion-aware execution belongs to later skills
 (sequence-writer and its companions), which are not built yet.
 
@@ -37,9 +37,24 @@ motion Tier defaults (Tier A and B to signal-based, Tier C to nurture) and overr
 
 ## Default and override
 
-By default, prospect-builder auto-assigns a motion per row from each motion's Tier defaults: Tier A
-and B rows get **signal-based**, Tier C rows get **nurture**. The `--motion <name>` flag overrides
-this, forcing a single motion across the whole run (useful for a named campaign), where `<name>` is
-one of the seven files above. An unknown `--motion` name is rejected with the list of valid motions.
-The assigned motion is written to the `ab_motion` column of the audience CSV so downstream skills know
-the intended treatment for each row.
+By default, prospect-builder auto-assigns a motion per row from a deterministic table keyed on the
+tier **and** the fresh-signal count, not on the tier alone. Exactly one row matches every account:
+
+| tier | fresh signals | motion |
+| --- | --- | --- |
+| A or B | 1 or more | **signal-based** |
+| A or B | 0 | **cold-outbound** |
+| C | 1 or more | **cold-outbound** |
+| C | 0 | **nurture** |
+| skip | any | none, not routed |
+
+Signal count is an input because the motions are not interchangeable at the same tier: signal-based
+promises a first touch within 48 hours of an event, so an account with no live event cannot run it.
+The fresh-signal cap in icp-scoring already means every Tier A and B account carries a signal, so the
+zero-signal row is unreachable while that cap holds; routing re-checks anyway so it stays correct if
+the cap is retuned.
+
+The `--motion <name>` flag overrides the table, forcing a single motion across the whole run (useful
+for a named campaign), where `<name>` is one of the seven files above. An unknown `--motion` name is
+rejected with the list of valid motions. The assigned motion is written to the `ab_motion` column of
+the audience CSV so downstream skills know the intended treatment for each row.
