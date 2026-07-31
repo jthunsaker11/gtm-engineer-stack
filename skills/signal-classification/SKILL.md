@@ -15,13 +15,14 @@ Every signal maps to exactly one type. Emit the **canonical** type from the sign
 - `sales_team_growth` - the sales org is scaling; see the scaling thresholds in config/offering.md
 - `funding_event` - any round announced; note whether the exact round matched or only the amount band, since they weight differently
 - `acquisition_event` - M&A activity, kept as its own type because post-acquisition consolidation is a budget event, not generic news
+- `product_launch` - a new product, feature, GA, or new-market entry; its own type because it decays about three times faster than generic news and carries a budget trigger
 - `hiring_signal` - open roles below the sales_team_growth threshold
 - `tech_stack_change` - adoption or removal of a relevant tool
-- `news_event` - a dated public event with no stronger classification: product launches, market or segment expansion, podcasts, posts, talks, interviews, and anything else worth flagging that does not fit above
+- `news_event` - a dated public event with no stronger classification: market or segment expansion, podcasts, posts, talks, interviews, and anything else worth flagging that does not fit above
 - `job_change` - a champion moved roles
 - `website_intent` - tracked visit behaviour on your own domains
 
-If nothing fits, use `news_event`; it is the catch-all. config/offering.md carries the mapping from this skill's older labels (`exec_hire`, `hiring_spike`, `funding_round`, `acquisition_or_merger`, `product_launch`, `expansion`, `public_statement`, `general_signal`) onto these names, so older output stays readable.
+If nothing fits, use `news_event`; it is the catch-all. config/offering.md carries the mapping from this skill's older labels (`exec_hire`, `hiring_spike`, `funding_round`, `acquisition_or_merger`, `expansion`, `public_statement`, `general_signal`) onto these names, so older output stays readable.
 
 ## Per-signal output (JSON)
 
@@ -47,22 +48,25 @@ outbound_fit weighs three inputs together: specificity (unique to this account v
 
 ### Recency bands by signal type
 
-Keyed on the canonical types. Sub-labels in brackets are the older distinctions these bands were written for, kept because they still carry different decay.
+**The freshness window in [config/offering.md](../../config/offering.md) is the outer boundary.** Past its window a signal is expired, not merely low: it stops counting on the prospect-builder path, so it must not read as usable here either. The bands below grade quality *inside* the window; there is no band beyond it. One number governs expiry, and it is the cited one in config, so the same event can no longer be fresh on one path and stale on the other.
 
-| Type | high | medium | low |
-|------|------|--------|-----|
-| `acquisition_event` | 0-90 days | 90-180 | beyond 180 |
-| `funding_event` (>$25M) | 0-60 | 60-120 | beyond 120 |
-| `funding_event` (<=$25M) | 0-30 | 30-90 | beyond 90 |
-| `leadership_change` | 0-45 | 45-90 | beyond 90 |
-| `tech_stack_change` | 0-60 | 60-120 | beyond 120 |
-| `hiring_signal` | while open | recently closed | past 90 days |
-| `news_event` [product launch] | 0-21 | 21-60 | beyond 60 |
-| `news_event` [public statement] | 0-45 | 45-90 | beyond 90 |
-| `news_event` [expansion] | 0-60 | 60-120 | beyond 120 |
-| `news_event` [other] | 0-30 | 30-60 | beyond 60 |
+| Type | window | high | medium |
+|------|--------|------|--------|
+| `acquisition_event` | 90 | 0-90 | n/a |
+| `funding_event` (>$25M) | 90 | 0-60 | 60-90 |
+| `funding_event` (<=$25M) | 90 | 0-30 | 30-90 |
+| `leadership_change` | 90 | 0-90 | n/a |
+| `product_launch` | 60 | 0-21 | 21-60 |
+| `tech_stack_change` | 180 | 0-60 | 60-180 |
+| `hiring_signal` | 30 | while open | closed within 30 |
+| `news_event` | 60 | 0-60 | n/a |
+| `job_change` | 60 | 0-60 | n/a |
+| `website_intent` | 14 | 0-14 | n/a |
+| `sales_team_growth` | 30 | while the ratio holds | n/a |
 
-**Known conflict, being fixed next.** These bands score `outbound_fit` on this path, while the freshness windows in [config/offering.md](../../config/offering.md) decide expiry on the prospect-builder path, and the two disagree: `leadership_change` is high only to 45 days here but stays fresh to 90 days there. Until they are reconciled, the same event can read as fresh on one path and stale on the other. Reconciling the numbers is the immediately-next change; this table's keys were renamed to the canonical vocabulary first so the two paths at least speak the same names.
+A signal past its window scores `outbound_fit` 0-2 and is flagged stale. Do not score it as usable; prospect-builder drops it outright, and the two paths must agree.
+
+Where a type shows `n/a` for medium, every signal inside the window grades the same: a leadership hire is as workable at day 80 as at day 10, which is why its window is 90 rather than a tighter high band. Types with a medium band decay inside the window instead: a launch is stale-ish by week four even though it is still worth referencing at week eight.
 
 ### Score
 

@@ -80,6 +80,7 @@ Not all signals convert equally, so every signal type carries a weight. icp-scor
 | `sales_team_growth` | 3 | The clearest sign the sales org is expanding; see the scaling thresholds below. |
 | `funding_event` (exact round match) | 2 | The latest round matches a target round in the buying signals above. |
 | `acquisition_event` | 2 | Post-acquisition consolidation is a budget event, stronger than a generic news mention. |
+| `product_launch` | 2 | A launch or new-market entry is a real budget trigger with a new sales motion behind it, and it decays about three times faster than generic news, so it is its own type. |
 | `funding_event` (amount band only) | 1 | Total raised falls in range, but the round itself is unconfirmed. |
 | `hiring_signal` | 1 | Open sales roles below the sales_team_growth threshold. |
 | `news_event` | 1 | A dated public event with no stronger classification. |
@@ -94,6 +95,11 @@ How icp-scoring uses the summed weight of an account's fresh signals:
 
 The consequence is deliberate. One leadership hire (weight 3) lifts the cap on its own, while two weak signals (weight 1 each) do not: two weak signals are not equivalent to one leadership hire.
 
+Why this ordering is research-backed rather than a judgment call:
+
+- `leadership_change` at 3, the highest weight: new VP and C-level hires evaluate vendors within their first 90 to 120 days, and an executive change paired with recent funding is the highest-converting signal pair in B2B outbound, reported at 4 to 6 times the reply rate of cold prospecting (Overloop, Buying Signals Playbook, 2026; Lead Scorer, B2B Buying Signals, 2026).
+- `product_launch` and `acquisition_event` at 2: product launches and M&A activity rank together at the tier below executive hires and funding (same sources).
+
 Tune per client. A team whose thesis is post-merger consolidation raises `acquisition_event`; a team selling into founder-led orgs may lower `leadership_change`.
 
 ### Signal type vocabulary
@@ -106,12 +112,12 @@ These type names are canonical across the stack: prospect-builder emits them, si
 | `funding_round` | `funding_event` |
 | `acquisition_or_merger` | `acquisition_event` |
 | `tech_stack_change` | `tech_stack_change` |
-| `product_launch` | `news_event` |
+| `product_launch` | `product_launch` |
 | `expansion` | `news_event` |
 | `public_statement` | `news_event` |
 | `general_signal` | `news_event` |
 
-`product_launch` and `expansion` are genuinely news-shaped, and `public_statement` and `general_signal` are weak by construction, so `news_event` at weight 1 is the right home for all four. `acquisition_or_merger` is not: it keeps its own type and weight, because a client whose thesis is M&A needs that knob rather than having the signal flattened into generic news.
+Things that decay differently are different types. `expansion` is genuinely news-shaped and decays on the same 60-day curve as generic news, and `public_statement` and `general_signal` are weak by construction, so `news_event` at weight 1 is the right home for those three. Two do not belong there: `acquisition_or_merger` keeps its own type and weight because a client whose thesis is M&A needs that knob, and `product_launch` keeps its own because it decays about three times faster than generic news (21 days versus 60) and carries a budget trigger that a generic mention does not.
 
 ## Sales-team scaling thresholds (Recommended)
 The sales_team_growth signal measures hiring intensity: open sales roles relative to the current sales team size, not a growth-over-time delta (Apollo exposes current departmental headcount, not sales-department history). It fires when the sales team is real and hiring above the replacement-hiring baseline.
@@ -141,6 +147,8 @@ Benchmarks these thresholds are grounded in:
 ## Signal freshness windows (Recommended)
 Signals older than these windows are treated as expired and do not contribute to tier scoring. Windows are calibrated per signal type against 2026 GTM research (cited below), so tight signals do not fire on stale data and durable ones are not discarded early.
 
+Why freshness is architectural here rather than cosmetic: trigger-based prospecting is reported at roughly four times the conversion of cold outreach, with sales cycles about 30 percent shorter, and the first seller to reach a trigger event is materially more likely to win it. That is what these windows protect. A signal worked late is worth a fraction of the same signal worked early, so an expired signal is treated as no signal at all rather than as a weak one, on both the prospect-builder and the signal-classification paths.
+
 - funding_event: 90 days (elevated buy rate lasts through 90 days post-announcement)
 - news_event: 60 days (attention decays over weeks)
 - hiring_signal: 30 days (job postings churn fast and the ghost-posting rate is high, so a posting older than a month is unreliable)
@@ -149,11 +157,13 @@ Signals older than these windows are treated as expired and do not contribute to
 - website_intent: 14 days (intent decays fastest)
 - leadership_change: 90 days (a new sales leader buys tooling across the first quarter, and profile-update lag means a tighter window would miss real hires)
 - acquisition_event: 90 days (consolidation reviews run for a quarter or more after the deal closes)
+- product_launch: 60 days (a launch stops being news fast; the outbound-relevant window is the quarter it ships in)
 - sales_team_growth: uses the hiring_signal window (30 days), applied to its open-sales-roles numerator
 
 Research these windows are grounded in:
 
 - LinkedIn profile-update lag: 1 to 4 weeks typical, 2 weeks most common (Resume Worded, Forage, 2026). A new hire's record lags the actual start, so the leadership window stays at 90 days rather than tightening.
+- New VP hires carry a 30 to 90 day outreach window and evaluate vendors through their first 90 to 120 days, which is the second reason `leadership_change` is 90 rather than tighter (Overloop, Buying Signals Playbook, 2026).
 - Ghost-job-posting rate: 18 to 32 percent of active listings across studies (Clarify Capital 2026, Greenhouse, HR Dive). This is why the hiring window is 30 days, not longer.
 - Funding buying window: peak intent in the first 2 to 3 weeks, elevated buy rate through 90 days post-announcement (Buska, Salesforge, 2026). This sets the funding window at 90 days.
 
