@@ -7,3 +7,7 @@ Thumbs.db
 
 # Local environment
 .env
+
+# Generated run output: records of prospect and prospect-builder runs, not source.
+# Kept out of git so a run can be reviewed and diffed locally without landing in history.
+output/

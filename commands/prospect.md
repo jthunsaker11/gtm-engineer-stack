@@ -1,10 +1,10 @@
 ---
 description: Run the full prospecting funnel on a company - research, ICP scoring with skip-gate, signal classification, Apollo contact resolution, then a reviewed icebreaker to the verified contact. Produces a draft plus a reasoning trail and a contact; does not send.
-argument-hint: <company name or domain>
+argument-hint: <company name or domain> [--output <path>]
 model: opus
 ---
 
-Run the prospect pipeline on the company in $ARGUMENTS. Default the offering to the one defined in [config/offering.md](../config/offering.md) and the next step to a 10-15 minute call unless told otherwise. Carry every cited fact forward with its source and date. Do not send anything; the deliverable is a draft plus reasoning plus a verified contact for human review.
+Run the prospect pipeline on the company in $ARGUMENTS. `--output <path>` (optional) sets where the run is written; it defaults to `output/prospect-run-<UTC timestamp>.csv`. Default the offering to the one defined in [config/offering.md](../config/offering.md) and the next step to a 10-15 minute call unless told otherwise. Carry every cited fact forward with its source and date. Do not send anything; the deliverable is a draft plus reasoning plus a verified contact for human review.
 
 Run in this order.
 
@@ -55,4 +55,10 @@ Run in this order.
        --- Review verdict ---
        <PASS, or REVISE with reasons>
 
-The orchestrator does NOT send. It produces draft + reasoning + verified contact for human review. When the freshness gate or the ICP skip-gate halts the pipeline, the deliverable is the verdict and the reason.
+9. **Persist the run.** Write the run to a CSV as well as presenting it, so it can be reviewed and diffed after the session ends rather than living only in the conversation. Default path `output/prospect-run-<UTC timestamp>.csv` using an ISO-8601 UTC stamp (for example `output/prospect-run-2026-07-31T0412Z.csv`); `--output <path>` overrides it. Create `output/` if it is not there. It is gitignored, so runs stay local.
+
+   Take the header from the ownership-map column list in [prospect-builder](../skills/prospect-builder/SKILL.md). Read it from there rather than restating it here, so the two cannot drift: a single-account run writes one row in the same shape a pool build writes many, and the two are diffable against each other. Then append the run-specific fields this command produces and prospect-builder does not: the picked trigger with its source and date, `outbound_fit` and the freshness status, the draft subject and body, and the output-review verdict.
+
+   Write the file even when the pipeline halts early. A skip-gate or freshness-gate stop is a result worth keeping, so record the row with the verdict and the reason and leave the draft columns empty.
+
+The orchestrator does NOT send. Writing the CSV does not change that: the file is a record for human review, never a send queue. It produces draft + reasoning + verified contact for human review. When the freshness gate or the ICP skip-gate halts the pipeline, the deliverable is the verdict and the reason.

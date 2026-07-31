@@ -18,7 +18,7 @@
 
 set -uo pipefail
 
-INTERNAL_RE='(^|[/\])(reference|skills|commands|hooks|docs|\.claude-plugin)[/\]|(^|[/\])CLAUDE\.md$'
+INTERNAL_RE='(^|[/\])(reference|skills|commands|hooks|docs|output|\.claude-plugin)[/\]|(^|[/\])CLAUDE\.md$'
 
 # Each entry: "Category|pat1|pat2|..." - patterns are joined into one regex.
 CATS=(
