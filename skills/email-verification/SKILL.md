@@ -18,6 +18,8 @@ The Apollo contact record carries a single-source email that hits on roughly 50 
 
 Never invent a provider name; use the provider Work Email actually reports. The routine name is `Work Email` (a Clay-managed function, roughly 1.1 credits per run); resolve its `function:<id>` from `clay routines list` at runtime.
 
+If `full_name` or `company_name` is missing, do not silently skip the waterfall: run the Apollo-only path and label `ab_email_source` as `apollo-fallback (waterfall skipped, missing name or company)`. The caller is supposed to supply both, so a silent skip would quietly cost the coverage the waterfall exists to provide; labelling it makes the gap visible in the output instead.
+
 ## Input
 
 - `full_name` (string) and `company_name` (string), plus `company_domain` (string): the Work Email routine's required inputs.

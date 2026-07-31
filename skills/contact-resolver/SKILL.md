@@ -12,6 +12,7 @@ Finds one real contact at a company and labels how confident the match is. Title
 - `company_domain`
 - `recommended_persona`: the priority-ordered title list from [icp-scoring](../icp-scoring/SKILL.md). The per-stage lists and the layer-2 title-family expansions live in [config/personas.md](../../config/personas.md).
 - `employee_count` (optional): used by the layer-4 founder heuristic.
+- `company_name` (optional): passed through to email-verification for the Work Email waterfall. If it is not supplied, take it from the resolved contact's `organization.name` in the provider response.
 
 ## The six-layer waterfall (default implementation: Apollo MCP)
 
@@ -26,7 +27,9 @@ Query `apollo_mixed_people_api_search` with the company domain. Stop at the firs
 
 ## Email verification
 
-After resolving the contact, run the [email-verification](../email-verification/SKILL.md) skill on the returned email, passing `email`, `email_status`, `email_domain_catchall`, and `company_domain`. Carry its verdict, confidence, recommendation, and reason. Email is a flag, never a gate. If no email was returned, offer LinkedIn-only as the fallback and include the LinkedIn URL.
+After resolving the contact, run the [email-verification](../email-verification/SKILL.md) skill, passing the contact's `full_name` plus the account's `company_name` and `company_domain`. Those three are the Work Email waterfall's required inputs; without them email-verification cannot run the waterfall and silently drops to single-source coverage. Also pass the contact record's `email`, `email_status`, and `email_domain_catchall` as the fallback fields it uses when the waterfall returns nothing.
+
+Both `full_name` and `company_name` are already in hand, so neither costs an extra call: the people-search match returns the person's name and its `organization.name`. Carry back the verdict, confidence, recommendation, reason, and the email source. Email is a flag, never a gate. If no email was returned, offer LinkedIn-only as the fallback and include the LinkedIn URL.
 
 ## Output
 
