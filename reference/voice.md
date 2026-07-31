@@ -117,27 +117,43 @@ The skill picks the opener phrasing based on trigger.
 
 These are calibration anchors. The output-review skill compares new drafts against these for shape, length, voice, and CTA discipline.
 
-**GOOD (podcast pickup, 50 words)**
+### Anchors may only cite evidence the pipeline can source
 
-> Hey Sarah, listened to your GTMfund episode last week. You mentioned marketing keeps claiming credit for deals AEs started. We built something that tags every touch with its source the moment it lands in HubSpot, so the attribution argument resolves itself. Open to 10 minutes next week?
+Every anchor below cites a fact that traces to a canonical signal type and to the field that carries it, and each one names both. This constraint is the whole point of the section. These examples teach the icebreaker skill what good evidence looks like, so an anchor citing a hyper-specific personal artifact (a podcast episode, an engineering spec, a conference talk) teaches the skill to reach for one, find nothing in the account data, and invent it. Fictional names are fine. Fictional evidence types are not.
 
-**GOOD (funding signal, 43 words)**
+The canonical types are `leadership_change`, `sales_team_growth`, `funding_event`, `acquisition_event`, `product_launch`, `hiring_signal`, `news_event`, `job_change`, `tech_stack_change`, and `website_intent`. Four of them carry a named field today and are the safest to anchor on: `ab_signal_leadership_hire`, `ab_signal_sales_team_growth`, `ab_signal_funding` (with `ab_funding_round`), and `ab_signal_hiring`.
 
-> Hey Marcus, saw the Series B, congrats. The multi-region spec you posted yesterday is going to be interesting on the GTM data side. We built something for revenue teams running into exactly that. Open to grabbing 10 minutes next week?
+If an anchor cannot name the type and the field its evidence came from, it is not a valid anchor. Re-source it or delete it.
 
-**GOOD (trial signup, 39 words)**
+An anchor may also not assert *where* evidence came from unless the record carries that provenance. Naming the wrong source is the same error as naming a source that does not exist, and it is harder to catch because it reads as harmless detail. "Saw the four AE roles on your careers page" is fabricated even when the count behind it is real: `Company Job Openings` records carry an ATS or job-board URL, not a company careers page. Cite the provenance the record actually holds, or drop the source phrase and let the fact stand on its date.
 
-> Hey Priya, saw you signed up this morning. Most teams hit the ICP setup step and bail because the docs are dense. Want to grab 10 minutes today and I'll walk you through it?
+The same test applies to what a field can support, not just whether it exists. `ab_signal_sales_team_growth` carries current sales headcount, deduped open sales roles, and the ratio between them; it holds no history, because Apollo exposes no departmental headcount over time. So "the sales team went from 22 to 31" is not sourceable from it even though the field is real and named. State the current numbers, never a trend.
 
-**GOOD (champion job change, 38 words)**
+Every GOOD example also closes with the full three-component CTA from the CTA discipline rule, so they pass output-review Criteria C and D. Keep both properties when editing them: an anchor that fails the criteria it is used to calibrate against teaches the wrong shape.
 
-> Hey Jordan, saw you landed at Notion, congrats. The work you did at Ramp on lifecycle was exactly the kind of thing the Notion team has been hiring for. Open to catching up in the next couple weeks?
+**GOOD (leadership_change, 67 words)** anchored on `ab_signal_leadership_hire` (person, title, start date)
+
+> Hey Dana, saw you stepped into the VP Sales seat at Northwind in June. New leaders inherit a team whose call history lives in people's heads, so the first quarter goes to rebuilding context. Recap lands that context in your CRM automatically. Want to explore whether there is a coaching angle worth a conversation? If so, would love to grab 10 minutes in the next couple weeks.
+
+**GOOD (funding_event, 67 words)** anchored on `ab_funding_round` (round type) and `ab_signal_funding` (round date from `latest_funding_round_date`)
+
+> Hey Marcus, saw the Series B close in May. Teams usually add reps faster than they add managers after a raise, so call coverage thins out right when deal quality matters most. Recap records the calls and writes the next steps back to your CRM. Curious whether the raise makes call coverage a priority this quarter? If so, would love to grab 10 minutes sometime next week.
+
+**GOOD (hiring_signal, 65 words)** anchored on `ab_signal_sales_roles` (deduped, entity-matched open sales roles). No provenance claimed: the record carries a job-board URL, not a careers page.
+
+> Hey Priya, saw four AE roles open at Northwind this month. Every new rep arrives with no call history to learn from, so ramp usually runs on shadowing whoever is free. Recap gives them the recorded calls and the moments that mattered. Worth seeing if there is a ramp angle here? If so, happy to grab 10 minutes whenever works on your end this month.
+
+**GOOD (sales_team_growth, 64 words)** anchored on `ab_signal_sales_team_growth` (current sales headcount and open sales roles). Current state only, no trend: the field carries no history.
+
+> Hey Jordan, saw 31 people on the sales team at Northwind with five more AE roles open. Teams at that ratio outrun their manager coverage, so coaching turns into spot checks. Recap records the calls and surfaces the coaching moments. Curious whether the hiring creates a need on the conversation-intelligence side? If so, would love to grab 10 minutes in the next couple weeks.
 
 **BAD**
 
-> Hey Sarah, quick question about your attribution setup. Saw your team is scaling fast and wanted to reach out because we help GTM leaders unlock pipeline visibility. Our platform leverages AI to give you world-class attribution, happy to send a one-pager or grab a 15-min chat next week?
+> Hey Sarah, quick question about your call coaching setup. Saw your team is scaling fast and wanted to reach out because we help revenue leaders unlock coaching visibility. Our platform leverages AI to give you world-class call intelligence, happy to send a one-pager or grab a 15-min chat next week?
 
-Why bad: "quick question" cliche, "wanted to reach out" cliche, vague "saw your team is scaling", "help you unlock" + "leverages AI" + "world-class" jargon stack, dual CTA pre-offering the one-pager.
+Why bad: "quick question" cliche, "wanted to reach out" cliche, "help you unlock" plus "leverages AI" plus "world-class" jargon stack, dual CTA pre-offering the one-pager, and no greeting-to-close flow.
+
+On the evidence specifically: "saw your team is scaling fast" points at a real canonical type (`sales_team_growth`), so the trigger choice is not the problem. It cites no headcount, no open-role count, no date, and no field, which makes it unsourced rather than unsourceable. The fix is the `sales_team_growth` anchor above, which cites the same signal with its numbers, not a different trigger.
 
 ## Follow-up sequence note
 
