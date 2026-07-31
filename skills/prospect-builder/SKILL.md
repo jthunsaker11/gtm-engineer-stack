@@ -87,7 +87,7 @@ Produce these ten layers, in order. Each filter carries a one-line reason. Each 
 7. **Enrichment routine order (cheapest-first)**. Order the Clay enrichment prospect-builder runs itself so cheap, high-coverage lookups fill firmographics and signals before the delegated calls run. Firmographics already returned by Search cost nothing extra; cheap company lookups fill gaps; signal routines run on every firmographic-qualified row, because signals are scoring inputs and are not gated. Confirm the exact per-item cost with `clay routines get <id>`. The expensive person-level work is not in this list; it is delegated in Layer 8 and gated on the tier icp-scoring returns.
 
 8. **Delegation pipeline (scoring, contacts, email)**. After sourcing and signal enrichment, run each account through the delegated skills in order:
-   a. Call **icp-scoring** with the account plus its enriched signals. It returns `tier` (A/B/C, or `skip`) and `recommended_persona`.
+   a. Call **icp-scoring** with the account, its enriched signals, and `fresh_signal_count` (how many signals survived the freshness gate below). It returns `tier` (A/B/C, or `skip`), the fit `score`, `fit_band`, `tier_cap_reason`, and `recommended_persona`. The tier is the worse of the fit band and the fresh-signal cap, so a high-fit account with no live signal comes back Tier C with its fit score intact; persist both (`ab_fit_score`, `ab_tier_cap_reason`) so the row reads as "good account, wrong moment" rather than as a downgrade.
    b. **Assign the motion.** With no `--motion` override, read the Tier defaults from config/motions/ and tag `ab_motion` from the tier: Tier A and B get signal-based, Tier C gets nurture. With a `--motion` override (already validated against config/motions/), tag every row with that single motion. Either way this is a tag, not execution.
    c. For accounts tiered **A or B**, call **contact-resolver** with `company_domain` and `recommended_persona`. It returns one primary contact, the layer that landed it, and a confidence label. With `--enrich-all`, run this step for every tier, including Tier C.
    d. For each resolved contact, call **email-verification** with the contact's `full_name`, the account's `company_name`, and `company_domain` (the Work Email waterfall's three required inputs), plus the Apollo fallback fields. It acquires the work email through Clay's Work Email waterfall (higher coverage), falling back to the Apollo contact email, then returns the email, its source (`ab_email_source`), the verdict, confidence, and send recommendation.
@@ -207,7 +207,7 @@ Sourcing runs first and dispatches on `--source` (see the Sourcing section): it 
 1. **Free**: firmographics already on the sourced rows (name, domain, size, industry, location, funding range). Use these to pre-filter obvious non-fits before spending anything.
 2. **Cheap company lookups**: Company Domain, Company Industry, Company Employee Count, Enrich Company. Fill firmographic gaps.
 3. **Signal routines**: Company Latest Funding, Company News, Company Job Openings, Website Technology Stack. Run on every firmographic-qualified row, because signals are scoring inputs and are not a gate. Then apply the freshness gate (below) so only fresh signals reach icp-scoring.
-4. **Delegate to icp-scoring** (per account): hand it the account plus its signals; record the `tier` and `recommended_persona` it returns.
+4. **Delegate to icp-scoring** (per account): hand it the account, its signals, and the post-gate `fresh_signal_count`; record the `tier`, the fit `score`, `tier_cap_reason`, and `recommended_persona` it returns.
 5. **Delegate to contact-resolver** (tier A and B accounts only): hand it `company_domain` and `recommended_persona`; record the primary contact.
 6. **Delegate to email-verification** (each resolved contact): hand it the contact's `full_name`, the `company_name`, and the domain; it acquires the work email via Clay Work Email (Apollo fallback) and records the email, its source (`ab_email_source`), and the verdict.
 7. **Aggregate** every account into the CSV.
@@ -257,7 +257,7 @@ The account stays in the pool. An account whose signals are all expired scores a
 
 The Clay plugin cannot write rows into a Clay table (the table surface is read-only via CLI, MCP, and the Public API). So prospect-builder persists like this:
 
-- **Default: CSV.** Write the aggregated audience to a local CSV with columns for firmographics, the source (`ab_pool_source`), each signal (including `ab_funding_round`, `ab_signal_leadership_hire`, `ab_signal_sales_team_growth`, `ab_sales_team_growth_ratio`, `ab_sales_team_growth_fires`, `ab_sales_team_growth_reason`, `ab_signal_hiring_raw`, and `ab_signal_hiring_warning`), the tier from icp-scoring, the intended motion (`ab_motion`), the resolved contact (tier A/B rows), the email source (`ab_email_source`), and the email-verification verdict. Tell the user how to import it in the Clay app (New table, then CSV import) if they want it in Clay.
+- **Default: CSV.** Write the aggregated audience to a local CSV with columns for firmographics, the source (`ab_pool_source`), each signal (including `ab_funding_round`, `ab_signal_leadership_hire`, `ab_signal_sales_team_growth`, `ab_sales_team_growth_ratio`, `ab_sales_team_growth_fires`, `ab_sales_team_growth_reason`, `ab_signal_hiring_raw`, and `ab_signal_hiring_warning`), the tier from icp-scoring plus its fit score and cap reason (`ab_tier`, `ab_fit_score`, `ab_tier_cap_reason`), the intended motion (`ab_motion`), the resolved contact (tier A/B rows), the email source (`ab_email_source`), and the email-verification verdict. Tell the user how to import it in the Clay app (New table, then CSV import) if they want it in Clay.
 - **Optional: webhook write-back.** If the user passes `--webhook-url <url>` for a Clay table configured with an inbound webhook source, POST the rows to that URL as well. This is the one supported write path into a Clay table, and it requires the user to have set up the webhook-source column in the Clay app first.
 
 Reading from existing audience tables is fully supported (`clay tables` and the `table` MCP tool); only writing is constrained. State this limitation in the output rather than implying a write happened when it did not.
@@ -281,7 +281,9 @@ The `ab_` prefix is a legacy artifact of this skill's original name (audience-bu
 - `ab_sales_team_growth_ratio` (deduped open sales roles divided by `departmental_head_count.sales`)
 - `ab_sales_team_growth_fires` (boolean: true when sales headcount is at least 20 and the ratio is at least 0.15)
 - `ab_sales_team_growth_reason` (short explanation, for example `40 sales team, 6 open roles = 15%, fires`)
-- `ab_tier` (the tier icp-scoring returned: A, B, C, or skip)
+- `ab_tier` (the tier icp-scoring returned: A, B, C, or skip; the worse of the fit band and the fresh-signal cap)
+- `ab_fit_score` (the 0-70 fit score behind the tier, kept visible so a capped row reads as "good account, wrong moment" rather than a demotion)
+- `ab_tier_cap_reason` (why the tier differs from the fit band, for example `score 63, fit band A, capped to C by 0 fresh signals`, or `no cap, fit band stands`)
 - `ab_motion` (the intended outreach motion for the row: the tier-default motion when no override is set, or the `--motion` override when one is)
 - `ab_email_source` (which provider produced the contact's email: a Work Email waterfall provider such as `prospeo` or `icypeas`, or `apollo-fallback`)
 - `ab_enriched_at` (date of last enrichment, for the refresh cadence)
