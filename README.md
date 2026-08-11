@@ -64,6 +64,7 @@ Most of the stack runs with just the three config edits above. The docs cover th
 
 ## Slash commands
 
+- **/setup** - populate the three config files from documents you already have. Asks what you have before reading anything, fills in only what those documents support, leaves the rest as `TODO(setup):` markers rather than guessing, and records where each populated field came from. Run this first on a fresh clone.
 - **/prospect-builder** - build a tiered pool from an ICP definition (plan by default, `--execute` to source and enrich in Clay). Plan mode needs no setup; `--execute` with the app-side buying-signal check needs the Claygent column from [docs/setup](docs/setup/README.md).
 - **/prospect** - the full chain on one company domain.
 - **/draft-icebreaker** - one reviewed icebreaker for a known contact and trigger.
