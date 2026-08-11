@@ -17,7 +17,7 @@ uses this line when it names what we do; keep it in one plain sentence.
 Rev intel / conversation intelligence. We compete with Gong, Chorus, Fathom, and Fireflies.
 
 ## Target market (Recommended)
-B2B SaaS companies running an outbound sales motion, 30 to 500 employees, with a sales team
+B2B SaaS companies running an outbound sales motion, 51 to 500 employees, with a sales team
 of 10 to 100 reps (AEs, SDRs, and Sales Managers), ACV $20K to $200K, on HubSpot or
 Salesforce, primarily in the US and Canada. The category is horizontal, so the buyer exists
 at any company stage where there is a real, staffed sales team. Full ICP detail, including

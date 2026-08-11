@@ -5,11 +5,53 @@ Recap AI is the reference ICP for this stack. Edit for your own business if you 
 ## Companies you target (Required)
 - Industry/vertical: B2B SaaS companies running an outbound sales motion
 - Stage range: any. This is a horizontal category. The buyer exists wherever there is a real sales team, from Series A to Series C.
-- Employee size: 30 to 500 employees, with a sales team of 10 to 100 (a mix of AEs, SDRs, and Sales Managers)
+- Employee size: 51 to 500 employees, a coarse pre-filter only
+- Sales team size: 10 to 100 reps (a mix of AEs, SDRs, and Sales Managers), enforced post-source on `departmental_head_count.sales`. This is the real qualification.
 - Deal size: ACV $20K to $200K
 - CRM: HubSpot or Salesforce as the primary CRM
 - Geographic constraints: US and Canada primary, English-primary sales conversations
 - Motion type: outbound sales motion (reps making calls), not inbound-only self-serve
+
+## Targeting derivation (Recommended)
+
+**Derived, not sourced.** Recap AI's published ICP could not be found, so the size range is
+inferred rather than quoted. Treat it as a reasoned default to test against outcomes, not as
+a fact about the company. Everything below is the reasoning, recorded so a future editor can
+disagree with the argument rather than guess at the numbers.
+
+The range is inferred from the product's mechanism of value. Conversation intelligence sells
+against a manager who cannot listen to every call. That problem does not exist below roughly
+8 to 10 reps, where a manager can still sit in on most of them, and above about 100 reps it is
+usually already solved by an incumbent. Sales is typically 15 to 25 percent of headcount in
+B2B SaaS, per the SDR and AE benchmarks cited in [offering.md](offering.md), which is what
+turns a 10 to 100 rep range into a 51 to 500 employee range.
+
+**Employee count is a pre-filter, not the qualification.** It exists because Apollo can filter
+on it at source and cannot filter on sales headcount. The actual gate is
+`departmental_head_count.sales` between 10 and 100, applied post-source.
+
+Why 51 rather than 50: Apollo's fixed bands `["51,200","201,500"]` tile 51 to 500 exactly, so
+the source query and the ICP describe the same set and there is no bucket slop to re-filter.
+The previous 30 to 500 range lacked that property. Its tightest covering bands were
+`["11,50","51,200","201,500"]`, which source 11 to 500 and quietly include everything from 11
+to 29. A 100-company validation run sourced exactly that, and nothing narrowed the pool back
+down. `hooks/preflight-config.sh` now reports the covered range before any spend and requires
+the post-source re-filter with a dropped-row count, so the gap is visible rather than silent.
+Choosing a range the bands tile exactly removes the problem instead of catching it.
+
+Two cases from that run are the argument for gating on sales headcount rather than employee
+count:
+
+- An account with 130 employees and 5 sales reps scored Tier A on a leadership hire. The
+  employee proxy passed it. The pain the product solves cannot exist at 5 reps, so the tier
+  was real by the scoring rules and wrong by the mechanism.
+- An account with 98 employees and 38 sales reps, 39 percent of headcount, is a strong fit. A
+  headcount ceiling tuned to drop the first account would also drop this one.
+
+The two cases fail in opposite directions from the same proxy, which is why the fix is a
+different gate rather than a tighter bound on the same one.
+
+**Stage range is not enforced.** See the note on the stage criterion above.
 
 ## Buyer personas you can sell to (Recommended)
 See [personas.md](personas.md) for the role-ordered priority lists. In short, the buying committee is:
@@ -61,7 +103,7 @@ Reference-shaped accounts to expand from as a lookalike seed:
 ## Scoring dimensions (used by icp-scoring skill) (Recommended)
 Edit the weights or descriptions if your ICP works differently:
 - Stage fit (any stage that has a real, staffed sales team)
-- Headcount fit (30 to 500 employees, sales team of 10 to 100 reps)
+- Headcount fit (sales team of 10 to 100 reps; the 51 to 500 employee range is the pre-filter that finds them)
 - Motion fit (outbound sales motion with reps on calls, not inbound-only)
 - Buyer presence (a VP Sales, CRO, or Head of RevOps who owns sales tooling budget)
 - Stack fit (HubSpot or Salesforce as the primary CRM)

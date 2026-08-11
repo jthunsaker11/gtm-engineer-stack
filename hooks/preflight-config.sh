@@ -242,6 +242,7 @@ fi
 declare -A ENFORCED=(
   ["Industry/vertical"]="source filter: q_organization_keyword_tags"
   ["Employee size"]="source filter: organization_num_employees_ranges (derived below)"
+  ["Sales team size"]="post-source gate: departmental_head_count.sales"
   ["CRM"]="source filter: currently_using_any_of_technology_uids"
   ["Geographic constraints"]="source filter: organization_locations"
 )
