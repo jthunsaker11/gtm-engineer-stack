@@ -56,7 +56,7 @@ Most of the stack runs with just the three config edits above. The docs cover th
   icebreaker ------------> peer-voice draft
         |
         v
-  output-review ---------> PASS / REVISE (Criteria A-E + style-guard + citation-check)
+  output-review ---------> PASS / REVISE (Criteria A-E + style-guard)
         |
         v
   reasoning trail + draft + contact   (does not send)
@@ -91,10 +91,16 @@ The other four motions work against external data sources prospect-builder does 
 
 The webhook receivers that ingest those four external feeds are planned for Tier 1 v2. Today you tag rows from those sources with the matching `--motion` manually.
 
-## Hooks
+## Where voice enforcement happens
 
-- **style-guard.sh** - deterministic enforcement of banned phrases, cliches, jargon, and em dashes.
-- **citation-check.sh** - deterministic enforcement of the source-preservation rule.
+Voice is enforced at draft time, inside the `output-review` skill, which every path that produces prospect-facing copy runs before presenting anything: `/prospect`, `/draft-icebreaker`, `/wrap`, `/prep`, and `/review`. It has two passes. The mechanical pass pipes the draft to `hooks/style-guard.sh`, which flags the hard bans (em dashes, exclamation points, cliches, try-hard phrasing, SaaS jargon) with line numbers, and every flagged item must be fixed. The judgment pass applies Criteria A through E, which a script cannot check.
+
+There is no editor-level or commit-level enforcement, and nothing scans your repository. These scripts run on draft text, when a skill asks them to.
+
+- **hooks/style-guard.sh** - the mechanical pass. Reads a draft on stdin, or explicit file arguments. Exit 2 means violations.
+- **hooks/citation-check.sh** - flags a speaking verb with no citation within fifteen words, the mechanical counterpart to Criterion A. Currently not wired into `output-review`, so Criterion A is enforced by judgment alone. Tracked as a defect.
+
+Both ran as `PostToolUse` hooks on `Write|Edit` until it became clear that the only files such a hook ever receives are repository-authored (config, examples, docs, motion definitions, run artifacts), never generated copy. Path cannot separate a new repo doc from a saved draft, since both are new markdown in the working tree, so the exclusion list kept growing and kept producing false positives. The wiring is gone; the scripts stayed.
 
 ## Voice doctrine
 

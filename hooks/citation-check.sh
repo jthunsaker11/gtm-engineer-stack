@@ -5,13 +5,14 @@
 # that has no citation marker within 15 tokens on either side. This is the
 # mechanical counterpart to output-review Criterion A.
 #
-# Usage mirrors style-guard.sh: file args, stdin text, or a PostToolUse JSON
-# payload. Only markdown files are scanned; internal stack files are skipped.
+# Usage mirrors style-guard.sh: explicit file args, or draft text on stdin.
 # Exit 0 = clean, exit 2 = unsourced claims found.
+#
+# Invoked explicitly, not as a PostToolUse hook, for the same reason style-guard
+# is not: the only files such a hook ever receives are repository-authored, and
+# this script's rule prose quotes the very pattern it bans, so it flagged itself.
 
 set -uo pipefail
-
-INTERNAL_RE='(^|[/\])(reference|skills|commands|hooks|docs|output|\.claude-plugin)[/\]|(^|[/\])CLAUDE\.md$'
 
 scan() {
   local src="$1" text="$2"
@@ -51,13 +52,7 @@ files=(); stdin_text=""
 if [ "$#" -gt 0 ]; then
   files=("$@")
 else
-  raw="$(cat)"
-  if [ -n "$raw" ] && [ "${raw:0:1}" = "{" ]; then
-    fp="$(printf '%s' "$raw" | grep -oE '"file_path"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed -E 's/.*:[[:space:]]*"([^"]*)".*/\1/')"
-    if [ -n "$fp" ]; then files=("$fp"); else stdin_text="$raw"; fi
-  else
-    stdin_text="$raw"
-  fi
+  stdin_text="$(cat)"
 fi
 
 status=0
@@ -67,7 +62,6 @@ fi
 for f in "${files[@]:-}"; do
   [ -z "$f" ] && continue
   case "$f" in *.md|*.markdown) : ;; *) continue ;; esac
-  if printf '%s' "$f" | grep -qE "$INTERNAL_RE"; then continue; fi
   [ -f "$f" ] || continue
   scan "$f" "$(cat "$f")" || status=2
 done

@@ -8,17 +8,24 @@
 # Usage:
 #   style-guard.sh <file>...        scan the given files
 #   echo "text" | style-guard.sh    scan stdin text
-#   (as a PostToolUse hook)         reads the tool JSON on stdin and scans the
-#                                   written file
 #
-# Exit 0 = clean. Exit 2 = violations found (blocks the action when used as a
-# hook). Files inside the stack's own directories are skipped, since they hold
-# banned phrases as rule definitions and examples. Matches either path
-# separator so Windows and POSIX paths both skip correctly.
+# Exit 0 = clean. Exit 2 = violations found.
+#
+# This is invoked explicitly, not as a PostToolUse hook. It ran as one until the
+# skip list was removed, and the skip list was removed because it could never
+# work: every file a Write|Edit hook receives is repository-authored content
+# (config, examples, motion definitions, docs, run artifacts), and none of it is
+# outbound copy this script should judge. Generated drafts never arrive as files.
+# They arrive on stdin, from the output-review skill, which is the enforcement
+# path that has always carried the real traffic. Path cannot separate a new repo
+# doc from a saved draft, since both are new markdown in the working tree, so
+# per-directory exclusions kept growing and kept producing false positives.
+#
+# Callers pass either a draft on stdin or an explicit file they mean to scan, so
+# nothing is skipped by path. Pointing this at a stack file that holds banned
+# phrases as rule definitions will flag them, which is correct: you asked.
 
 set -uo pipefail
-
-INTERNAL_RE='(^|[/\])(reference|skills|commands|hooks|docs|output|\.claude-plugin)[/\]|(^|[/\])CLAUDE\.md$'
 
 # Each entry: "Category|pat1|pat2|..." - patterns are joined into one regex.
 CATS=(
@@ -58,18 +65,10 @@ stdin_text=""
 if [ "$#" -gt 0 ]; then
   files=("$@")
 else
-  raw="$(cat)"
-  if [ -n "$raw" ] && [ "${raw:0:1}" = "{" ]; then
-    # PostToolUse JSON payload - pull out the written file path.
-    fp="$(printf '%s' "$raw" | grep -oE '"file_path"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed -E 's/.*:[[:space:]]*"([^"]*)".*/\1/')"
-    if [ -n "$fp" ]; then
-      files=("$fp")
-    else
-      stdin_text="$raw"
-    fi
-  else
-    stdin_text="$raw"
-  fi
+  # Everything on stdin is draft text. The PostToolUse JSON branch that used to
+  # live here is gone with the hook wiring; keeping it would misparse any draft
+  # that happens to start with a brace.
+  stdin_text="$(cat)"
 fi
 
 status=0
@@ -80,9 +79,6 @@ fi
 
 for f in "${files[@]:-}"; do
   [ -z "$f" ] && continue
-  if printf '%s' "$f" | grep -qE "$INTERNAL_RE"; then
-    continue
-  fi
   [ -f "$f" ] || continue
   scan "$f" "$(cat "$f")" || status=2
 done

@@ -52,3 +52,9 @@ Expected output from CRM read (any subset is fine; missing fields skip gracefull
 Once the CRM read completes, treat the returned data as the `recent_context` input and proceed with the skill logic. If the CRM returns nothing (no record for that company/contact), the skill falls back to the public account-research path only.
 
 This skill DOES NOT WRITE to the CRM. It only reads.
+
+## Review before presenting
+
+Run the brief through [output-review](../output-review/SKILL.md) before presenting it. Call prep is inside the scope of the universal rules ([CLAUDE.md](../../CLAUDE.md)), which govern every artifact a prospect or customer might see, and a brief is where the seller's talking points, questions, and objection handling come from. What lands in the brief is what gets said on the call.
+
+Both passes apply, with one adjustment. The mechanical pass is unchanged: the hard bans are bans, and jargon or an em dash in a talking point becomes jargon or a dropped clause in the seller's mouth. The judgment pass applies the criteria that carry over to a brief, which are source preservation and event specificity: every account claim needs its citation, and a trigger has to be specific enough to raise out loud. The criteria written for a cold email do not transfer, so skip the length target, the greeting, and the CTA structure. A brief is not an email and should not be trimmed to 70 words.
