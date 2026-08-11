@@ -245,10 +245,22 @@ declare -A ENFORCED=(
   ["Sales team size"]="post-source gate: departmental_head_count.sales"
   ["CRM"]="source filter: currently_using_any_of_technology_uids"
   ["Geographic constraints"]="source filter: organization_locations"
+  ["Motion type"]="post-source confirmation: ab_signal_sales_motion (Claygent column, or the WebSearch fallback)"
 )
 
-while IFS=$'\t' read -r ln field; do
+# A criterion tagged "(human judgment)" is one no available field can express, kept
+# because a human applies it when reviewing the pool. It is not a gap to fix, so it
+# is reported as a note rather than a warning. A warning that can never be resolved
+# trains people to ignore warnings.
+HUMAN_RE='[(]human judgment[)]'
+HUMAN_CRITERIA=()
+
+while IFS=$'\t' read -r ln field rest; do
   [ -z "${ln:-}" ] && continue
+  if printf '%s' "$rest" | grep -qE "$HUMAN_RE"; then
+    HUMAN_CRITERIA+=("$ICP:$ln  $field")
+    continue
+  fi
   if [ -z "${ENFORCED[$field]:-}" ]; then
     warn "$ICP" "$ln" "ICP criterion \"$field\" has no source filter or post-source gate. It is stated but never enforced."
   fi
@@ -259,7 +271,7 @@ done < <(awk '
     line = $0
     sub(/^[-*][[:space:]]+/, "", line)
     idx = index(line, ":")
-    if (idx > 0) printf "%d\t%s\n", NR, substr(line, 1, idx - 1)
+    if (idx > 0) printf "%d\t%s\t%s\n", NR, substr(line, 1, idx - 1), substr(line, idx + 1)
   }
 ' "$ICP")
 
@@ -275,6 +287,11 @@ fi
 
 note ""
 note "preflight-config: PASS ($WARNINGS warning(s))"
+if [ "${#HUMAN_CRITERIA[@]}" -gt 0 ]; then
+  note ""
+  note "Human judgment criteria (applied by a person reviewing the pool, not by a filter):"
+  for c in "${HUMAN_CRITERIA[@]}"; do note "  $c"; done
+fi
 note ""
 note "Derived Apollo employee buckets (the ONLY buckets this run may use):"
 note "  ICP range        : $EMP_MIN to $EMP_MAX employees"

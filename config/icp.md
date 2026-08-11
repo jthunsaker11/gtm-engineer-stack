@@ -14,14 +14,21 @@ conversation-intelligence vendor used to show the shape. It is a reference, not 
 - Industry/vertical: TODO(setup): the industry or vertical you sell into
 - Stage range: TODO(setup): company stage range, or "any" if your category is horizontal
 - Employee size: TODO(setup): employee range written as "N to M employees", plus the size of the team that uses your product. The preflight gate derives the Apollo source buckets from these two numbers, so the "N to M" wording is load-bearing, not prose.
-- Deal size: TODO(setup): your ACV band
+- Deal size: TODO(setup): your ACV band (human judgment)
 - CRM: TODO(setup): the CRM or core system a target must run, if your product depends on one
 - Geographic constraints: TODO(setup): regions and language constraints
 - Motion type: TODO(setup): the go-to-market motion a target must run for your product to make sense
 
-Keep this list to criteria that decide whether an account is worth working. Criteria the
-pipeline cannot filter or gate on are reported as warnings by the preflight gate, so a
-stated-but-unenforced criterion stays visible instead of quietly doing nothing.
+Keep this list to criteria that decide whether an account is worth working. The preflight
+gate warns about any criterion with no filter or gate behind it, so a stated-but-unenforced
+criterion stays visible instead of quietly doing nothing.
+
+Some criteria no available field can express. ACV is the usual one: it is a property of your
+deal rather than of the account, so nothing can filter on it. Tag those `(human judgment)`,
+as the Deal size line above is, and the gate reports them as a note instead of a warning.
+Use the tag only when no field could ever carry the criterion, not when the filter is merely
+missing or blocked. A warning that can never be resolved trains people to ignore warnings,
+and a criterion mislabeled as human judgment stops being something anyone intends to fix.
 
 ## Buyer personas you can sell to (Recommended)
 See [personas.md](personas.md) for the role-ordered priority lists. In short, the buying
