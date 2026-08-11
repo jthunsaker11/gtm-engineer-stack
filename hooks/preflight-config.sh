@@ -73,13 +73,25 @@ note "preflight-config: validating $CONFIG_DIR"
 # text. An unfilled config must fail loudly; a guessed one fails silently, which is
 # worse.
 # ---------------------------------------------------------------------------
-PLACEHOLDER_RE='TODO\(setup\)|\(replace with yours\)|\(none / specify\)|\(Add or remove\)|\bTBD\b|\bFIXME\b|<your [^>]*>|\[your [^]]*\]'
+# Bracket classes, not backslash escapes: this regex is used by both grep -E and
+# awk, and awk's dynamic regex does not accept \( or \[, silently turning them
+# into grouping metacharacters that then match nothing.
+PLACEHOLDER_RE='TODO[(]setup[)]|[(]replace with yours[)]|[(]none / specify[)]|[(]Add or remove[)]|TBD|FIXME|<your [^>]*>|[[]your [^]]*[]]'
 
+# A marker inside backticks is documentation about the marker, not an unfilled
+# field. The starter configs explain TODO(setup): to the user, so matching those
+# lines would make every starter file fail for describing its own convention.
 for f in "$ICP" "$PERSONAS" "$OFFERING"; do
-  while IFS=: read -r ln text; do
+  while IFS=$'\t' read -r ln text; do
     [ -z "${ln:-}" ] && continue
     fail "$f" "$ln" "unfilled config: $(printf '%s' "$text" | sed -E 's/^[[:space:]]+//' | cut -c1-90)"
-  done < <(grep -nE "$PLACEHOLDER_RE" "$f" || true)
+  done < <(awk -v re="$PLACEHOLDER_RE" '
+    {
+      stripped = $0
+      gsub(/`[^`]*`/, "", stripped)
+      if (stripped ~ re) printf "%d\t%s\n", NR, $0
+    }
+  ' "$f")
 done
 
 # ---------------------------------------------------------------------------

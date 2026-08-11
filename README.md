@@ -7,7 +7,7 @@ An opinionated Claude Code stack for B2B outbound, built to be cloned. It keeps 
 ## Quickstart
 
 1. Clone the repo, copy `.env.example` to `.env` with your `ANTHROPIC_API_KEY`, and install the Apollo MCP plugin in Claude Code.
-2. Edit the three configs: `config/icp.md` (who you target), `config/offering.md` (what you sell), `config/personas.md` (who you reach). See [populating the configs](docs/setup/populating-configs.md).
+2. Fill in the three configs: `config/icp.md` (who you target), `config/offering.md` (what you sell), `config/personas.md` (who you reach). Run `/setup` to populate them from documents you already have, or edit by hand. They ship generic with `TODO(setup):` markers, so a fresh clone fails the preflight gate until you replace them. A fully worked version lives in [examples/config/](examples/config/), which is Recap AI, a fictional example rather than a default. See [populating the configs](docs/setup/populating-configs.md).
 3. Run `/prospect <company-domain>` for one account, or `/prospect-builder <ICP>` to build a tiered pool.
 
 ## Skills inventory
@@ -104,6 +104,9 @@ See `CLAUDE.md`. Peer voice, no em dashes, source preservation, a three-componen
 - `config/icp.md` - who you target.
 - `config/offering.md` - what you sell, how you describe it.
 - `config/personas.md` - the buying committee, roles and titles.
+- `/setup` - populates all three from documents you already have, marking anything the documents do not cover as `TODO(setup):` rather than guessing.
+- `hooks/preflight-config.sh` - validates the three configs before any run that spends credits, and derives the Apollo employee buckets from the ICP employee range so the query cannot drift from the config.
+- [examples/config/](examples/config/) - a fully worked version of all three, for Recap AI. A fictional example to read alongside the starters, not a default.
 - Voice doctrine: edit `CLAUDE.md` only if you want to change the fundamental writing rules.
 
 ## CRM integration

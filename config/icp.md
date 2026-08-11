@@ -1,36 +1,52 @@
 # Your Ideal Customer Profile
 
-Recap AI is the reference ICP for this stack. Edit for your own business if you fork it.
+This is a starter config. Every `TODO(setup):` marker below is a field you fill in with
+your own business. A fresh clone fails the preflight gate (`hooks/preflight-config.sh`)
+until they are replaced, which is deliberate: an unfilled config fails loudly, and a
+config filled with someone else's ICP fails silently.
+
+Run `/setup` to populate this from your own sales and marketing documents, or edit it by
+hand. For a fully worked version of every section, see
+[examples/config/icp.md](../examples/config/icp.md). That example is Recap AI, a fictional
+conversation-intelligence vendor used to show the shape. It is a reference, not a default.
 
 ## Companies you target (Required)
-- Industry/vertical: B2B SaaS companies running an outbound sales motion
-- Stage range: any. This is a horizontal category. The buyer exists wherever there is a real sales team, from Series A through public.
-- Employee size: 30 to 500 employees, with a sales team of 10 to 100 (a mix of AEs, SDRs, and Sales Managers)
-- Deal size: ACV $20K to $200K
-- CRM: HubSpot or Salesforce as the primary CRM
-- Geographic constraints: US and Canada primary, English-primary sales conversations
-- Motion type: outbound sales motion (reps making calls), not inbound-only self-serve
+- Industry/vertical: TODO(setup): the industry or vertical you sell into
+- Stage range: TODO(setup): company stage range, or "any" if your category is horizontal
+- Employee size: TODO(setup): employee range written as "N to M employees", plus the size of the team that uses your product. The preflight gate derives the Apollo source buckets from these two numbers, so the "N to M" wording is load-bearing, not prose.
+- Deal size: TODO(setup): your ACV band
+- CRM: TODO(setup): the CRM or core system a target must run, if your product depends on one
+- Geographic constraints: TODO(setup): regions and language constraints
+- Motion type: TODO(setup): the go-to-market motion a target must run for your product to make sense
+
+Keep this list to criteria that decide whether an account is worth working. Criteria the
+pipeline cannot filter or gate on are reported as warnings by the preflight gate, so a
+stated-but-unenforced criterion stays visible instead of quietly doing nothing.
 
 ## Buyer personas you can sell to (Recommended)
-See [personas.md](personas.md) for the role-ordered priority lists. In short, the buying committee is:
-- Economic buyer: VP Sales, CRO, Chief Revenue Officer
-- Champion: Head of RevOps, Sales Operations Manager, Sales Enablement Lead
-- Influencer: VP Engineering (owns the CRM integration), Head of Customer Success (post-sale motion depends on the data)
-- Blocker: VP Legal, Chief Compliance Officer (call-recording privacy and consent)
+See [personas.md](personas.md) for the role-ordered priority lists. In short, the buying
+committee is:
+- Economic buyer: TODO(setup): who owns the budget
+- Champion: TODO(setup): who advocates internally
+- Influencer: TODO(setup): who shapes the decision without owning it
+- Blocker: TODO(setup): who can stop the deal (legal, security, procurement)
 
 ## Exclusions (Recommended)
-- Consultancies and agencies (they sell services, not a seat-based sales tool)
-- Single-founder pre-revenue shops (no sales team to record or coach)
-- Sub-10-employee teams (below the 10-seat minimum, no real sales org)
-- Companies with an existing rev intel deployment over 12 months old (entrenched, harder rip-out)
-- Pure inbound-only companies with no outbound sales motion (no calls to record)
-- Non-English-primary companies (transcription accuracy degrades)
+- TODO(setup): the account types you deliberately do not sell to, and why
 
-These are the default exclusions for the Recap AI reference ICP. Customize them per client: if you actually sell TO one of these categories (for example a recruiting SaaS selling to staffing firms), remove that entry so it is not excluded.
+Write the reason next to each exclusion. The reason is what tells a future editor whether
+the exclusion still applies.
 
 ### Source-time exclusions (Apollo `not_organization_sic_codes`)
 
-When sourcing with `--source apollo`, exclude these SIC codes at source time so the categories never enter the pool. SIC (Standard Industrial Classification) codes are a real, industry-standard taxonomy. Adjust per client.
+When sourcing with `--source apollo`, exclude these SIC codes at source time so the
+categories never enter the pool. SIC (Standard Industrial Classification) codes are a real,
+industry-standard taxonomy.
+
+These are shipped defaults, not client-specific: they exclude the categories that rarely buy
+seat-based B2B software. Keep them, or adjust per business. If you sell TO one of these
+categories (a recruiting SaaS selling to staffing firms, say), remove that entry so the
+category is not excluded.
 
 - `7361`: Employment agencies (recruiting firms)
 - `8111`: Legal services (law firms)
@@ -41,7 +57,9 @@ When sourcing with `--source apollo`, exclude these SIC codes at source time so 
 
 ### Post-source keyword exclusions
 
-For rows the SIC filter misses, drop any account whose organization name or description contains one of these terms (case-insensitive). Adjust per client.
+For rows the SIC filter misses, drop any account whose organization name or description
+contains one of these terms (case-insensitive). Shipped defaults, same reasoning as the SIC
+list above. Adjust per business.
 
 - recruiting, recruitment, talent acquisition, staffing, RPO
 - agency, consultancy, consulting group
@@ -52,18 +70,20 @@ For rows the SIC filter misses, drop any account whose organization name or desc
 - university, college, academic
 
 ## Lookalike seed accounts (Optional)
-Reference-shaped accounts to expand from as a lookalike seed:
-- Bloomreach
-- Kustomer
-- LaunchDarkly
-- Formstack
+Reference-shaped accounts to expand from as a lookalike seed. Your closed-won list is the
+best source.
+- TODO(setup): 3 to 5 closed-won or best-fit customers
 
 ## Scoring dimensions (used by icp-scoring skill) (Recommended)
-Edit the weights or descriptions if your ICP works differently:
-- Stage fit (any stage that has a real, staffed sales team)
-- Headcount fit (30 to 500 employees, sales team of 10 to 100 reps)
-- Motion fit (outbound sales motion with reps on calls, not inbound-only)
-- Buyer presence (a VP Sales, CRO, or Head of RevOps who owns sales tooling budget)
-- Stack fit (HubSpot or Salesforce as the primary CRM)
-- Buying-signal (funding, sales-team scaling, RevOps hire, or competitor evaluation; see the signal patterns in config/offering.md)
+The dimensions icp-scoring reads. Edit the descriptions to match your ICP; each one should
+name a criterion above so the score traces back to something written down.
+- Stage fit: TODO(setup): what "right stage" means for you
+- Headcount fit: TODO(setup): restate the employee and team-size range above
+- Motion fit: TODO(setup): the motion that makes your product relevant
+- Buyer presence: TODO(setup): the role whose presence means a real buyer exists
+- Stack fit: TODO(setup): the system a target must run, if any
+- Buying-signal: the events that precede a deal for you; see the signal patterns in config/offering.md
 - Reachability
+
+A dimension that scores the same value on every account is a gate, not a dimension. If one
+of these never varies, it belongs in the criteria above or in the source query, not here.

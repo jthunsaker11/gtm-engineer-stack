@@ -1,6 +1,8 @@
 # Populating the configs
 
-The whole stack reads three config files. Once they describe your business, every skill works for you instead of for the reference company (Recap AI, the fictional conversation-intelligence vendor the repo ships with). This guide walks a cloning user through filling them in.
+The whole stack reads three config files. Once they describe your business, every skill works for you. This guide walks a cloning user through filling them in.
+
+The files ship generic, with a `TODO(setup):` marker on every field that describes your business. A fresh clone hard-fails `hooks/preflight-config.sh` until you replace them, which is the point: an unfilled config fails loudly and a config full of someone else's ICP fails silently. A fully worked version lives in [examples/config/](../../examples/config/), for Recap AI, a fictional conversation-intelligence vendor. Read it alongside the starter you are filling in. It is a reference, never a default.
 
 - `config/icp.md` — which companies you target (firmographics, exclusions, scoring dimensions).
 - `config/personas.md` — who you talk to (the buying committee: roles and titles).
@@ -31,12 +33,16 @@ If you cannot get a meeting, your closed-won CRM records and your website's own 
 
 ## What to do if you do not have everything yet
 
-Do not block on completeness. The configs are meant to be iterated.
+Do not block on completeness. The configs are meant to be iterated. But do not fill a gap with a guess either.
 
-- Fill every **(Required)** section from your best guess. A rough ICP beats an empty one; the stack needs something to score against.
-- Leave **(Optional)** sections blank or as the shipped example until you have real content. A missing Optional section only costs polish.
-- Fill **(Recommended)** sections as you learn them, ideally within the first week or two of use.
-- Do not invent precise numbers you do not have. If you do not know your ACV band, write the range you believe and mark it as a guess, the same way the thin-input example in the prospect-builder skill flags its gaps.
+Leave anything you do not know as its `TODO(setup):` marker. The preflight gate names the file and line of every remaining marker and refuses to spend credits, so an unfilled config stops you with a specific list of what to go find out. A guessed one does not stop you at all: it sources a pool, scores it, and hands you tiers that look exactly like real ones. That is the failure worth designing against, because nothing about the output tells you it happened.
+
+- Fill every **(Required)** section before your first run. These are what the gate hard-fails on, and the stack cannot score without them.
+- Fill **(Recommended)** sections as you learn them, ideally within the first week or two of use. Output quality drops without them, but the stack runs.
+- Leave **(Optional)** sections as markers until you have real content. A missing Optional section only costs polish.
+- Do not invent precise numbers you do not have. If you do not know your ACV band, leave the marker and ask someone who does.
+
+One exception worth knowing: the calibrated sections of `offering.md` (signal weighting, the signal type vocabulary, sales-team scaling thresholds, and signal freshness windows) ship populated rather than as markers, because `icp-scoring` reads them directly and a blank weighting table produces untiered output. They are defaults grounded in cited research. Tune them when you have reason to; you do not need to fill them in to start.
 
 A half-filled config that is honest about its gaps produces better output than a fully-filled config padded with guesses, because the skills surface the gaps instead of confidently acting on made-up detail.
 
@@ -68,6 +74,16 @@ Treat the configs as living documents, not a one-time setup.
 
 Because motions live in config too (config/motions/), the same iterate-in-config discipline applies to cadence and approval rules: tune the markdown, not the skill.
 
-## Roadmap: automated config population
+## Automated config population: /setup
 
-Editing the configs by hand, or asking Claude Code in chat to draft them from what you paste in, is the path today. A `/setup` command that reads your existing sales and marketing materials (a pitch deck, a one-pager, a positioning PDF) and drafts the three configs for you is planned for Tier 1 v2. It is its own skill, not built yet. Until it lands, populate the configs manually or by pasting your materials into a Claude Code conversation and asking it to fill the sections.
+Editing the three files by hand is one path. The other is `/setup`, which reads documents you already have and populates them for you.
+
+```
+/setup
+```
+
+It asks what you have before reading anything (an ICP one-pager, a product brief, persona notes, a positioning deck, a pitch deck, closed-won notes), reads what you point it at, and fills in only what those documents actually support. Anything they do not cover stays as its `TODO(setup):` marker rather than becoming a plausible guess. Every field it does populate records which document it came from, so you can audit the config the same way you audit a sourced claim in outreach.
+
+It shows you a diff before writing anything and waits for your approval, then runs the preflight gate and reports what still needs a human.
+
+`/setup` does not make anything up, so expect it to leave markers. That is the intended outcome, not a shortfall: the markers are a list of what to go ask your founder, your RevOps lead, or your product marketer about.

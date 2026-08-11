@@ -24,15 +24,27 @@ Contact **search** is free. Revealing a verified email is **enrichment**, which 
 
 If Apollo is not connected, the rest of the chain still runs; the contact step reports that Apollo is unavailable and falls back to manual sourcing.
 
-## 4. Edit the three config files
+## 4. Fill in the three config files
 
 This is the whole customization surface. With your values in place, the stack works for your business.
 
+Run `/setup` and point it at whatever you already have (an ICP one-pager, a product brief, persona notes, a positioning deck). It reads them, fills in what they support, and leaves a `TODO(setup):` marker on anything they do not cover. Or edit the three files by hand:
+
 - `config/icp.md` - your ideal customer profile: industry, stage range, employee size, motion, buyer personas, exclusions, and the scoring dimensions.
 - `config/offering.md` - what you sell and the exact sentence the icebreaker uses to describe it, plus when to drop the ICP qualifier.
-- `config/personas.md` - the title priority lists per stage, and the title-family expansions the Apollo waterfall uses at layer 2.
+- `config/personas.md` - the buying committee, and the related titles the Apollo waterfall expands to at layer 2.
 
-The files ship with a worked example (Recap AI, a fictional rev-intelligence SaaS company) so you can see the shape, then replace the values.
+The files ship generic, with a `TODO(setup):` marker on every field that describes your business. That is deliberate: a fresh clone hard-fails the preflight gate until you replace them, rather than quietly running against someone else's ICP.
+
+For a fully worked version of every section, read [examples/config/](examples/config/). That is Recap AI, a fictional conversation-intelligence vendor used to show the shape. It is a reference to read alongside the starter, never a default you inherit.
+
+Check your work at any point:
+
+```bash
+hooks/preflight-config.sh
+```
+
+It names the file and line of anything still unfilled, and it prints the Apollo employee buckets it derives from your ICP employee range. Every command that spends credits runs it first and stops if it fails.
 
 ## 5. Run your first /prospect
 
