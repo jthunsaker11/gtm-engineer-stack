@@ -48,7 +48,7 @@ The offering here is the one defined in config/offering.md; the prospect is a pl
 > **Snapshot**: Acme Analytics, B2B SaaS analytics platform, ~200 employees with a ~40-rep sales team [acme.example/about, 2026-06].
 >
 > **Recent triggers**
-> 1. Hiring spike: four Account Executive reqs and a Head of RevOps role open this month [careers page, 2026-06-16]. Signals a scaling sales team, a buying signal for the offer.
+> 1. Hiring spike: four Account Executive reqs and a Head of RevOps role open this month [acme.example/careers, 2026-06-16]. Signals a scaling sales team, a buying signal for the offer.
 > 2. Public pickup: the VP Sales posted that managers cannot review enough calls to coach the growing team [LinkedIn, 2026-06-21]. Fresh, specific, role-relevant.
 >
 > **Key people**: VP Sales, the economic buyer; Head of RevOps, the likely champion.
@@ -56,3 +56,7 @@ The offering here is the one defined in config/offering.md; the prospect is a pl
 > **Recommended angle**: Reach the VP Sales. Trigger = the call-coaching post [LinkedIn, 2026-06-21]. Offering = the value proposition from config/offering.md. Next step = 10-minute call.
 
 Hand the Recommended angle block straight to the icebreaker skill.
+
+Every citation above names the surface it actually came from, down to the URL. That is the standard, not a stylistic preference: an anchor may not assert where evidence came from unless the source it names is the one that was read (see the provenance rule in [reference/voice.md](../../reference/voice.md)). "[careers page]" with no URL is weaker than it looks, because it reads as provenance while naming nothing checkable.
+
+This matters most where the two paths differ on the same fact. Here the hiring count came from visiting the company's own careers page, so citing that page is honest. On the pool-built path the same count comes from the `Company Job Openings` record, which carries an ATS or job-board URL and not a careers page, so an anchor there cites the job board or drops the source phrase and stands on the date. Same fact, different provenance, and the copy has to say whichever one is true for the path that produced it.
