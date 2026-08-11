@@ -39,8 +39,27 @@ Bloomreach, Kustomer, LaunchDarkly, Formstack. Cite these as logos only. Do not 
 logo into a case study, a metric, or a quote you cannot back up with a real source.
 
 ## Pricing model (Optional)
-$500 per seat per year, with a 10-seat minimum. Seat-based, so it scales with the size of
-the sales team.
+Seat-based, with a 10-seat minimum, so it scales with the size of the sales team.
+
+**Illustrative, not sourced.** Recap AI's pricing is not findable, so rather than invent a
+number this section states the figure the rest of the config already implies and shows the
+arithmetic. A cloner replaces it with their real pricing.
+
+The ICP gates the sales team at 10 to 100 reps and states an ACV band of $20K to $200K. Those
+two facts pin the per-seat figure at both ends:
+
+| seats | ACV | implied per seat per year |
+| --- | --- | --- |
+| 10 (the minimum) | $20K (band floor) | $2,000 |
+| 100 (the ceiling) | $200K (band cap) | $2,000 |
+
+Both endpoints give the same number, so the ACV band and the seat range are consistent with
+each other at roughly **$2,000 per seat per year**. That is the figure to reason from, and it
+is in the right order of magnitude for the conversation-intelligence category.
+
+Keep the three numbers in step when you edit any of them. Seat range times per-seat price
+should reproduce the ACV band in [icp.md](icp.md), or the config states two things that
+cannot both be true.
 
 ## Common objections and responses (Optional)
 - **"We already use Gong or Chorus."** Recap runs alongside an incumbent, so there is no rip-out to trial it. Setup is under a day, the per-seat cost is lower, and the coaching layer is where teams tell us the incumbents fall short. Ask what they wish their current tool did better.
