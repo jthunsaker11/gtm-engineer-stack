@@ -19,7 +19,30 @@ Parse the arguments:
 - `--execute` (optional) switches from plan mode to execute mode.
 - `--webhook-url <url>` (optional) is a Clay table inbound-webhook URL to POST the audience to, in addition to the default CSV.
 
-Default to **plan mode**: produce the ten-layer audience plan and its machine-readable summary. Do not run Clay Search, do not run Routines, do not call the downstream skills, do not spend credits. The user reviews the plan first.
+**Step 0, before anything else: run the preflight config gate.**
+
+```bash
+hooks/preflight-config.sh
+```
+
+This runs in plan mode as well as execute mode, and a non-zero exit stops the run in both. Plan mode does not spend credits, but the query it produces is the query a human approves and execute later runs, so a plan built on an invalid config is worse than no plan. One rule, no exception to reason about.
+
+If it exits non-zero, stop. Report the failing lines it named and tell the user to fix them or run `/setup`. Do not proceed, do not source, do not spend. A warning-only run continues, but surface the warnings: they list ICP criteria that are stated in config but have no filter or gate behind them, which is exactly the kind of silent gap that produces a pool nobody asked for.
+
+The gate prints a machine-readable block. Take the employee buckets from it verbatim:
+
+```
+PREFLIGHT_APOLLO_BUCKETS=["51,200","201,500"]
+PREFLIGHT_EMP_MIN=50
+PREFLIGHT_EMP_MAX=500
+PREFLIGHT_POST_SOURCE_REFILTER=required
+```
+
+`PREFLIGHT_APOLLO_BUCKETS` is the only permitted value for `organization_num_employees_ranges`. Do not hand-type an employee range, do not adjust the buckets, do not reason about which bands look right. The buckets are derived from the one employee range written in config/icp.md, which is what makes config the single source of truth for targeting rather than a document the query merely resembles.
+
+When `PREFLIGHT_POST_SOURCE_REFILTER` is `required`, Apollo's fixed bands are wider than the ICP range, so the sourced pool contains accounts outside it. Re-filter post-source on `PREFLIGHT_EMP_MIN` to `PREFLIGHT_EMP_MAX` and report how many rows the re-filter dropped. Report the count even when it is zero, so bucket slop is visible rather than silent.
+
+Default to **plan mode**: produce the ten-layer audience plan and its machine-readable summary. Do not run Clay Search, do not run Routines, do not call the downstream skills, do not spend credits. The user reviews the plan first. State the derived buckets and the re-filter range in the plan, so the human approves the actual query rather than a description of one.
 
 Only when `--execute` is present, run the plan against Clay and the downstream skills:
 

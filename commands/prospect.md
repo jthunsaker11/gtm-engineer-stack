@@ -8,6 +8,8 @@ Run the prospect pipeline on the company in $ARGUMENTS. `--output <path>` (optio
 
 Run in this order.
 
+0. **Preflight config gate.** Run `hooks/preflight-config.sh` before anything else. This pipeline scores against config/icp.md and spends Apollo credits on contact resolution, so an invalid config means a scoring verdict nobody can trust and credits spent reaching the wrong person. If it exits non-zero, stop and report the failing lines it named; tell the user to fix them or run `/setup`. Do not warn and continue. Warnings do not stop the run, but surface them: they name ICP criteria that are stated but never enforced, which is worth knowing before you read a tier as meaningful.
+
 1. **account-research** - Build the cited brief: snapshot, stage, ranked triggers (each with source and date), key people, context.
 
 2. **icp-scoring** - Score the company profile. Read the verdict before spending anything:
