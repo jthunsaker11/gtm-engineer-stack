@@ -17,6 +17,12 @@ Run the style-guard hook script against the draft. It flags every hard ban (em d
 
 Exit code 0 means clean. Exit code 2 means violations were printed to stderr. Every flagged item must be fixed. Do not exercise judgment here; these are bans.
 
+Then run the citation-check script against the same draft. It flags a verb of speaking with no citation marker within fifteen words, which is the mechanical half of Criterion A:
+
+    printf '%s' "<draft text>" | "${CLAUDE_PLUGIN_ROOT:-.}/hooks/citation-check.sh"
+
+Same exit codes. Unlike style-guard, this one is a floor rather than a verdict: it catches the case where a source was dropped outright, and it cannot tell whether the source that is present is the right one. A clean exit does not discharge Criterion A. Work the flags first, then apply Criterion A in full below.
+
 ## Pass 2: judgment
 
 The script cannot catch these. Check each against the doctrine and the anchors in [reference/voice.md](../../reference/voice.md):
@@ -36,6 +42,10 @@ The script cannot catch these. Check each against the doctrine and the anchors i
 These reject regardless of how strong the rest of the draft is.
 
 **Criterion A, source preservation:** Scan the draft for verbs of speaking: said, mentioned, wrote, shared, talked about, told, posted. If any of those verbs appears, verify that a named source (podcast plus episode info, post date, interview title, announcement, blog post name) appears within fifteen words. If not, reject with the exact reason: "source dropped between research and outreach. The research had a citation; the copy lost it. Restore the source in the copy or remove the quoted claim."
+
+The citation-check run in Pass 1 is the mechanical half of this criterion, and it is a floor, not a substitute. It tests only for the presence of something that looks like a citation near the verb. Two things it cannot do: it cannot tell whether the source named is the one the research actually returned, and it cannot tell whether the record carries that provenance at all. Both of those are the judgment half, and both are live failure modes in this repo. See the provenance rule in [reference/voice.md](../../reference/voice.md): naming the wrong source reads as harmless detail and passes every mechanical test.
+
+So a clean citation-check exit means the copy has a source-shaped phrase near the verb. Confirm it is the right source before passing Criterion A.
 
 **Criterion B, event specificity:** If the draft references a corporate event using terms like joining, partnering, joined, moving to, acquired by, verify the framing makes the event type unambiguous. If a reader could reasonably interpret it as multiple events (acquisition vs exec hire vs partnership), reject with the exact reason: "ambiguous event reference. Specify the event type."
 
