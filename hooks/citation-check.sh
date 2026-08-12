@@ -13,7 +13,11 @@
 #   a markdown link                   [the post](https://acme.example/p)
 #   a dated source in brackets        [LinkedIn, 2026-06-21]   [acme.example/about, 2026-06]
 #   a dated source in parentheses     (blog, 2026-06-21)
-#   the phrases "according to", "in the", or "source:"
+#   "in the <up to 4 words> <source noun>"   in the Series B announcement
+#   the phrases "according to" or "source:"
+#
+# The source noun is required. Bare "in the" matched any incidental prose, so
+# "you said the reps in the field cannot review calls" counted as cited.
 #
 # The bracket form is the convention the stack's own briefs use, so it has to be
 # recognized here. A date needs a year and a month; a bare "[LinkedIn]" or a
@@ -44,7 +48,7 @@ scan() {
           cited=0
           if      (win ~ /https?:\/\//)                                   cited=1
           else if (wl  ~ /according to/)                                  cited=1
-          else if (wl  ~ /in the/)                                        cited=1
+          else if (wl  ~ /in (the|his|her|their|your) ([a-z0-9.'"'"'-]+ ){0,4}(announcement|post|episode|interview|article|release|launch|thread|talk|keynote|report|podcast|newsletter|memo|blog|writeup|write-up|filing|deck|study|paper|video|roundup|teardown|statement|note|update|recap|transcript|q&a)/) cited=1
           else if (win ~ /\[[^]]+\]\([^)]+\)/)                            cited=1
           else if (win ~ /[[(][^])]*[0-9][0-9][0-9][0-9]-[0-9][0-9]/)     cited=1
           else if (wl  ~ /source:/)                                       cited=1
