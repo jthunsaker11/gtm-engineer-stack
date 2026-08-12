@@ -8,6 +8,17 @@
 # Usage mirrors style-guard.sh: explicit file args, or draft text on stdin.
 # Exit 0 = clean, exit 2 = unsourced claims found.
 #
+# Citation forms recognized as a marker:
+#   a bare URL                        https://acme.example/post
+#   a markdown link                   [the post](https://acme.example/p)
+#   a dated source in brackets        [LinkedIn, 2026-06-21]   [acme.example/about, 2026-06]
+#   a dated source in parentheses     (blog, 2026-06-21)
+#   the phrases "according to", "in the", or "source:"
+#
+# The bracket form is the convention the stack's own briefs use, so it has to be
+# recognized here. A date needs a year and a month; a bare "[LinkedIn]" or a
+# year-only "(Overloop, 2026)" is an undated source and still flags.
+#
 # Invoked explicitly, not as a PostToolUse hook, for the same reason style-guard
 # is not: the only files such a hook ever receives are repository-authored, and
 # this script's rule prose quotes the very pattern it bans, so it flagged itself.
@@ -35,7 +46,7 @@ scan() {
           else if (wl  ~ /according to/)                                  cited=1
           else if (wl  ~ /in the/)                                        cited=1
           else if (win ~ /\[[^]]+\]\([^)]+\)/)                            cited=1
-          else if (win ~ /\([^)]*[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]/) cited=1
+          else if (win ~ /[[(][^])]*[0-9][0-9][0-9][0-9]-[0-9][0-9]/)     cited=1
           else if (wl  ~ /source:/)                                       cited=1
           if (!cited){
             if (!hdr){ printf "%s:\n", src > "/dev/stderr"; hdr=1 }
