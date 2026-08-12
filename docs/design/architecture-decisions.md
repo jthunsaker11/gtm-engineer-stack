@@ -74,6 +74,24 @@ Without a mock default, the first run requires real credentials and real spend, 
 
 Reference: this is the test-double and fixture practice from automated testing (Gerard Meszaros, xUnit Test Patterns), applied to a GTM pipeline: hermetic, deterministic inputs stand in for live dependencies so behavior can be exercised and verified cheaply.
 
+## Unreceived enforcement: the recurring failure mode
+
+The most common defect in this stack has not been a wrong rule. It has been a correct rule attached to a mechanism that never received the input it was written to judge. The rule is right, the code runs, the docs describe it accurately, and nothing enforces anything.
+
+This is worse than a missing check, because a missing check is visible. An unreceived one reports success. It produces green exits, passing gates, and populated columns, and every one of those signals means the mechanism ran, not that it saw the thing it exists to catch.
+
+Three from a single review pass:
+
+- **citation-check enforced nothing.** It implemented the source-preservation rule correctly and was wired only to a `PostToolUse` hook on `Write|Edit`. The only files such a hook receives are repository-authored, so it inspected config and documentation and never once saw a draft. Meanwhile `output-review`, which owns the criterion, never called it.
+- **The preflight gate had nothing to compare.** The employee range lived in `config/icp.md` and the Apollo buckets were typed at runtime and never written down. A consistency check needs two recorded values; there was one. The fix was not to store the second, which would create a second thing to drift, but to derive the buckets from the range and emit them as the only permitted value.
+- **The starter config passed while describing a fictional company.** `config/` shipped fully populated with the reference ICP and no placeholders, so a fresh clone passed every check and prospected against Recap AI. A wrong config that runs is worse than no config: no config fails loudly, and a wrong one hands back tiers indistinguishable from real ones.
+
+Two more of the same shape: an email waterfall that could not run because its required inputs drifted out of the caller's contract, and a freshness audit trail defined in the ownership map and never written to disk.
+
+**The test this implies:** for any mechanism that claims to enforce something, verify it receives real input on the real path before trusting it. Not that it is implemented, not that it is referenced in the docs, and not that it exits zero. Trace one real input through it and confirm the mechanism saw it.
+
+That test is what found four of the five above. It is cheap, and it is worth running against a mechanism before extending it, because extending an unreceived check is effort spent on something that cannot fire. Two useful corollaries: a check that has never failed deserves suspicion rather than confidence, and a green result is only evidence when you know the check had something to look at.
+
 ## Roadmap summary
 
 Two decisions above describe intended design that is not built yet:
